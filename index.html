@@ -1,1371 +1,835 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
   <title>Parqueo El Centro</title>
-
-  <!-- Bibliotecas -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
   <style>
     :root{
-      --bg:#071021; --panel:rgba(6,11,17,0.85); --card:rgba(255,255,255,0.02);
-      --accent:#06b6d4; --accent-2:#ff7a59; --muted:#9aa6b2; --text:#e6eef3;
-      --radius:12px; --btn-radius:28px; --btn-min-width:90px;
+      --bg:#07111f;
+      --panel:#0d1b2a;
+      --panel-2:#10243a;
+      --card:#13273d;
+      --line:rgba(255,255,255,.08);
+      --text:#eff6fb;
+      --muted:#97a8b8;
+      --accent:#22c55e;
+      --accent-2:#38bdf8;
+      --danger:#ef4444;
+      --warn:#f59e0b;
+      --shadow:0 12px 30px rgba(0,0,0,.28);
+      --radius:18px;
+      --safe-top:env(safe-area-inset-top,0px);
+      --safe-bottom:env(safe-area-inset-bottom,0px);
     }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
-    body::before{content:"";position:fixed;inset:0;background-image:url('121212.png');background-size:cover;background-position:center;filter:blur(6px) brightness(0.45);z-index:0}
-    .wrap{position:relative;z-index:1;display:flex;gap:18px;padding:18px;min-height:100vh}
-    @media(max-width:1000px){.wrap{flex-direction:column;padding:12px}}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;height:100%;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(180deg,#06101b,#0d1b2a 52%,#0b1522);color:var(--text)}
+    button,input,select{font:inherit}
+    input,select{width:100%;min-width:0;background:#0b1725;color:var(--text);border:1px solid var(--line);border-radius:16px;padding:14px 14px;outline:none}
+    input::placeholder{color:#7f94a8}
+    button{border:none;cursor:pointer}
+    .hidden{display:none !important}
 
-    .sidebar{width:280px;min-width:220px;background:var(--panel);border-radius:var(--radius);padding:18px;box-shadow:0 12px 40px rgba(0,0,0,0.6)}
-    .brand{display:flex;gap:12px;align-items:center}
-    .logo{width:52px;height:52px;border-radius:10px;background:linear-gradient(90deg,var(--accent),#0ea5ad);display:flex;align-items:center;justify-content:center;font-weight:800;color:#012}
-    .small{font-size:13px;color:var(--muted)}
-    .menu{margin-top:14px;display:flex;flex-direction:column;gap:6px}
-    .menu button{background:transparent;border:none;color:var(--muted);text-align:left;padding:10px;border-radius:8px;cursor:pointer}
-    .menu button.active{color:var(--accent);background:linear-gradient(90deg, rgba(6,182,212,0.06), rgba(255,122,89,0.03));font-weight:600}
+    .login-screen{
+      min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px;
+      background:radial-gradient(circle at top,#123657 0%,#08121d 55%,#050a11 100%);
+    }
+    .login-card{
+      width:min(100%,420px);background:rgba(13,27,42,.96);border:1px solid var(--line);border-radius:28px;
+      padding:22px;box-shadow:var(--shadow)
+    }
+    .brand-badge{width:74px;height:74px;border-radius:22px;background:linear-gradient(135deg,var(--accent),#16a34a);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;color:#06240f;box-shadow:0 10px 24px rgba(34,197,94,.24)}
+    .title{font-size:28px;font-weight:900;line-height:1.05;margin:14px 0 6px}
+    .subtitle{color:var(--muted);font-size:14px;line-height:1.45}
+    .field{margin-top:14px}
+    .btn{width:100%;border-radius:18px;padding:15px 16px;font-weight:800}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),#16a34a);color:#06240f}
+    .btn-secondary{background:#0b1725;color:var(--text);border:1px solid var(--line)}
+    .btn-danger{background:linear-gradient(135deg,#fb7185,var(--danger));color:#fff}
+    .error{margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(239,68,68,.12);color:#fecaca;border:1px solid rgba(239,68,68,.25);font-size:14px}
 
-    .main{flex:1;display:flex;flex-direction:column;gap:12px}
-    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px}
-    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .btn{padding:8px;border-radius:8px;border:none;cursor:pointer;background:rgba(255,255,255,0.03);color:var(--text)}
-    .btn.primary{background:linear-gradient(90deg,var(--accent),#0ea5ad);color:#012;font-weight:600}
-    .btn.warn{background:linear-gradient(90deg,var(--accent-2),#ff936e);color:#2b0d00;font-weight:600}
-    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
-    .btn.danger{background:linear-gradient(90deg,#fb7185,#ef4444);color:#210007;font-weight:700}
+    .app{min-height:100dvh;display:flex;flex-direction:column}
+    .topbar{position:sticky;top:0;z-index:30;padding:calc(12px + var(--safe-top)) 14px 12px;background:rgba(6,16,27,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+    .icon-btn{width:48px;height:48px;border-radius:16px;background:#0b1725;color:var(--text);display:flex;align-items:center;justify-content:center;border:1px solid var(--line);font-size:22px;flex:0 0 auto}
+    .topbar-center{min-width:0;flex:1}
+    .topbar-title{font-size:19px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .topbar-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-    .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 8px 24px rgba(2,6,23,0.6)}
-    .form-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    input[type="text"], input[type="search"], input[type="date"], select{
-      padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text);outline:none
-    }
-    .table-wrap{overflow:auto;max-height:56vh;margin-top:12px}
-    table{width:100%;border-collapse:collapse;font-size:14px}
-    th,td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:center;color:var(--text);white-space:nowrap}
-    th{font-size:13px;color:var(--muted);background:rgba(0,0,0,0.12);position:sticky;top:0}
-    tr.active{background:linear-gradient(90deg, rgba(6,182,212,0.04), rgba(255,122,89,0.01))}
+    .content{padding:14px 14px calc(18px + var(--safe-bottom));display:flex;flex-direction:column;gap:14px}
+    .card{background:rgba(16,36,58,.96);border:1px solid var(--line);border-radius:24px;padding:14px;box-shadow:var(--shadow)}
+    .section-title{font-size:18px;font-weight:900;margin:0 0 10px}
+    .muted{color:var(--muted)}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .stack{display:flex;flex-direction:column;gap:10px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .stat{background:#0b1725;border:1px solid var(--line);border-radius:20px;padding:14px;text-align:center}
+    .stat .num{font-size:24px;font-weight:900}
+    .stat .lbl{font-size:12px;color:var(--muted);margin-top:4px}
+    .pill{display:inline-flex;align-items:center;gap:8px;background:#0b1725;border:1px solid var(--line);color:var(--muted);padding:10px 12px;border-radius:999px;font-size:12px;font-weight:700}
+    .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .toolbar .btn{padding:14px 12px}
+    .toolbar-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 
-    .rightcol{width:360px;min-width:260px;display:flex;flex-direction:column;gap:12px}
-    .stats{display:flex;gap:10px;flex-wrap:wrap}
-    .stat{flex:1;min-width:120px;background:rgba(255,255,255,0.015);padding:12px;border-radius:10px;text-align:center}
-    .stat h3{margin:0;font-size:20px}
-    footer{color:var(--muted);text-align:center;margin-top:8px;font-size:13px;position:fixed;left:0;bottom:6px;width:100%;z-index:2}
-    .crown{display:inline-block;margin-left:8px;color:#ffd54a}
-    .muted{color:var(--muted);font-size:13px}
-    .barcode-img{max-width:160px;margin-top:8px}
-    .users-list{max-height:28vh;overflow:auto;margin-top:8px}
-    .users-list li{display:flex;justify-content:space-between;padding:6px 8px;border-radius:6px;background:rgba(255,255,255,0.01);margin-bottom:6px}
+    .record-list{display:flex;flex-direction:column;gap:12px}
+    .record{
+      background:#0b1725;border:1px solid var(--line);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:12px;
+    }
+    .record-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+    .record-title{font-size:18px;font-weight:900;line-height:1.1}
+    .record-badge{padding:7px 10px;border-radius:999px;font-size:12px;font-weight:900;white-space:nowrap}
+    .badge-active{background:rgba(34,197,94,.14);color:#86efac;border:1px solid rgba(34,197,94,.25)}
+    .badge-closed{background:rgba(56,189,248,.14);color:#93c5fd;border:1px solid rgba(56,189,248,.25)}
+    .details{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .detail{background:rgba(255,255,255,.02);border-radius:16px;padding:10px}
+    .detail .k{font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+    .detail .v{font-weight:800;word-break:break-word}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .actions.single{grid-template-columns:1fr}
 
-    /* Botones redondos con texto (acción en filas) */
-    .action-btn {
-      border-radius: var(--btn-radius);
-      padding: 6px 12px;
-      min-width: var(--btn-min-width);
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      border: none;
-      cursor: pointer;
-      background: rgba(255,255,255,0.03);
-      color: var(--text);
-      transition: transform .12s, background .12s;
-      font-weight:600;
-      font-size:0.95rem;
-    }
-    .action-btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.04); }
-    .action-btn.exit { background: linear-gradient(90deg,#4ade80,#16a34a); color:#012 }
-    .action-btn.ticket { background: linear-gradient(90deg,#60a5fa,#0369a1); color:#012 }
-    .action-btn.delete { background: linear-gradient(90deg,#fb7185,#ef4444); color:#012 }
+    .drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40;opacity:0;pointer-events:none;transition:.24s}
+    .drawer{position:fixed;left:0;top:0;height:100dvh;width:min(84vw,340px);background:#0a1726;border-right:1px solid var(--line);z-index:50;transform:translateX(-100%);transition:.24s;display:flex;flex-direction:column;padding:calc(14px + var(--safe-top)) 14px calc(18px + var(--safe-bottom));gap:14px}
+    .drawer.open{transform:none}
+    .drawer-backdrop.open{opacity:1;pointer-events:auto}
+    .menu-list{display:flex;flex-direction:column;gap:10px}
+    .menu-item{width:100%;text-align:left;background:#0f2032;border:1px solid var(--line);color:var(--text);padding:15px 16px;border-radius:18px;font-weight:800}
+    .menu-item.active{background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(56,189,248,.14));border-color:rgba(34,197,94,.3)}
 
-    @media(max-width:1000px){
-      .rightcol{width:100%;order:2}.sidebar{width:100%;order:3}.main{order:1}
-      .action-btn{min-width:72px;padding:6px 8px;font-size:0.85rem}
-    }
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:80;display:none;align-items:flex-end}
+    .modal-backdrop.show{display:flex}
+    .sheet{width:100%;background:#081523;border-top-left-radius:28px;border-top-right-radius:28px;border:1px solid var(--line);padding:16px 14px calc(18px + var(--safe-bottom));max-height:92dvh;overflow:auto;box-shadow:0 -12px 30px rgba(0,0,0,.35)}
+    .sheet-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+    .sheet-title{font-size:20px;font-weight:900}
 
-    /* ===== MODAL COBRO ===== */
-    .modal-backdrop{
-      position:fixed; inset:0; background:rgba(0,0,0,0.62);
-      display:none; align-items:center; justify-content:center;
-      z-index:9999;
-    }
-    .modal{
-      width:min(680px, 96vw);
-      background:rgba(6,11,17,0.95);
-      border:1px solid rgba(255,255,255,0.06);
-      border-radius:16px;
-      box-shadow:0 18px 60px rgba(0,0,0,0.7);
-      overflow:hidden;
-    }
-    .modal-head{
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      padding:14px 16px;
-      background:linear-gradient(90deg, rgba(6,182,212,0.10), rgba(255,122,89,0.06));
-      border-bottom:1px solid rgba(255,255,255,0.06);
-    }
-    .modal-head .title{font-weight:900; letter-spacing:.3px}
-    .modal-body{padding:14px 16px; display:flex; gap:14px; flex-wrap:wrap}
-    .modal-col{flex:1; min-width:260px}
-    .modal-logo{
-      width:100%; max-width:260px; border-radius:10px;
-      box-shadow:0 10px 28px rgba(0,0,0,0.35);
-    }
-    .kv{
-      display:grid; grid-template-columns:120px 1fr; gap:8px 10px;
-      background:rgba(255,255,255,0.02);
-      border:1px solid rgba(255,255,255,0.04);
-      border-radius:12px;
-      padding:12px;
-    }
-    .kv .k{color:var(--muted); text-align:left}
-    .kv .v{font-weight:800; text-align:left}
-    .modal-actions{
-      padding:14px 16px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
-      border-top:1px solid rgba(255,255,255,0.06);
-      background:rgba(0,0,0,0.12);
-    }
-    .pill{
-      display:inline-flex; align-items:center; gap:8px; padding:8px 10px;
-      border-radius:999px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.04);
-      color:var(--muted); font-size:13px;
-    }
+    .empty{padding:18px;border:1px dashed var(--line);border-radius:20px;text-align:center;color:var(--muted);background:rgba(255,255,255,.02)}
 
-    @media(max-width:768px){
-      html,body{font-size:14px}
-      body::before{filter:blur(4px) brightness(0.40)}
-      .wrap{padding:8px;gap:8px;display:block}
-      .sidebar{width:100%;min-width:0;padding:12px;margin-bottom:8px}
-      .brand{justify-content:center}
-      .sidebar img{max-height:90px;object-fit:contain}
-      .menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-      .menu button{padding:12px;text-align:center;background:rgba(255,255,255,0.04)}
-      .main,.topbar,.controls,.form-row,.modal-body,.modal-actions,.stats{display:flex;flex-direction:column}
-      .topbar{align-items:stretch}
-      .controls > *,.form-row > *{width:100% !important;min-width:0 !important}
-      .btn,.action-btn{min-height:48px;font-size:16px;border-radius:12px}
-      .card{padding:12px;border-radius:14px}
-      .table-wrap{max-height:none;overflow:auto;-webkit-overflow-scrolling:touch}
-      table{font-size:12px;min-width:760px}
-      th,td{padding:8px 6px}
-      .rightcol{width:100%;min-width:0}
-      .modal{width:calc(100vw - 14px);max-height:92vh;overflow:auto}
-      .modal-col{min-width:0}
-      #search,#placa,#marca,#color,#cobroCodigo{font-size:16px}
-      footer{position:static;padding:10px 0 4px}
+    .search-box{display:flex;gap:10px}
+    .search-box input{flex:1}
+
+    @media (min-width: 760px){
+      .content{width:min(100%,900px);margin:0 auto}
+      .toolbar{grid-template-columns:repeat(4,1fr)}
+      .actions{grid-template-columns:repeat(4,1fr)}
+      .grid-2{grid-template-columns:repeat(2,1fr)}
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">PEC</div>
-        <div>
-          <div style="font-weight:800">Parqueo El Centro</div>
-          <div class="small">Administración</div>
-        </div>
-      </div>
+  <section id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="brand-badge">PE</div>
+      <div class="title">Parqueo El Centro</div>
+      <div class="subtitle">Acceso administrativo del sistema móvil de cobro de parqueo.</div>
+      <div class="field"><input id="loginUser" type="text" placeholder="Usuario" value="admin" /></div>
+      <div class="field"><input id="loginPass" type="password" placeholder="Clave" /></div>
+      <div class="field"><button id="btnLogin" class="btn btn-primary">Ingresar</button></div>
+      <div id="loginError" class="error hidden">Usuario o clave incorrectos.</div>
+      <div class="subtitle" style="margin-top:14px">Usuario: <b>admin</b> &nbsp; Clave: <b>123</b></div>
+    </div>
+  </section>
 
-      <div style="margin-top:12px">
-        <img src="IMAGEN1.png" alt="logo" style="width:100%;border-radius:8px;margin-top:10px;box-shadow:0 6px 18px rgba(0,0,0,0.3)"/>
+  <section id="app" class="app hidden">
+    <header class="topbar">
+      <button class="icon-btn" id="btnMenu">☰</button>
+      <div class="topbar-center">
+        <div class="topbar-title">Parqueo El Centro</div>
+        <div class="topbar-sub">2a. Avenida y 1a. Calle Zona 2, Salcajá</div>
       </div>
+      <button class="icon-btn" id="btnOpenCobro">💳</button>
+    </header>
 
-      <div class="menu" id="menu">
-        <button data-view="dashboard" class="active">📊 Dashboard</button>
-        <button data-view="registro">📋 Historial</button>
-        <button data-view="ventas">💰 Ventas</button>
-        <button data-view="export">⬇️ Exportar</button>
-        <button data-view="users">👥 Usuarios</button>
-        <button data-view="cierres">🗓️ Cierres</button>
-        <button data-view="config">⚙️ Información</button>
+    <div id="drawerBackdrop" class="drawer-backdrop"></div>
+    <aside id="drawer" class="drawer">
+      <div>
+        <div class="brand-badge" style="width:60px;height:60px;border-radius:18px;font-size:20px">PE</div>
+        <div style="margin-top:10px;font-size:22px;font-weight:900">Menú</div>
+        <div class="muted" style="margin-top:4px">Sistema móvil</div>
       </div>
-
-      <div style="margin-top:12px" class="small">Parqueo El Centro · Salcajá</div>
+      <nav id="menuList" class="menu-list">
+        <button class="menu-item active" data-view="dashboard">🏠 Inicio</button>
+        <button class="menu-item" data-view="activos">🚗 Activos</button>
+        <button class="menu-item" data-view="historial">📋 Historial</button>
+        <button class="menu-item" data-view="ventas">💰 Ventas</button>
+        <button class="menu-item" data-view="cierres">🧾 Cierres</button>
+        <button class="menu-item" data-view="usuarios">👥 Usuarios</button>
+        <button class="menu-item" data-view="info">ℹ️ Información</button>
+      </nav>
+      <div style="margin-top:auto" class="stack">
+        <button id="btnExportXlsx" class="btn btn-secondary">Exportar Excel</button>
+        <button id="btnLogout" class="btn btn-danger">Cerrar sesión</button>
+      </div>
     </aside>
 
-    <main class="main">
-      <div class="topbar">
-        <div>
-          <div style="font-size:18px;font-weight:700">Parqueo El Centro</div><div class="muted">2a. Avenida y 1a. Calle Zona 2, Salcaja</div>
-          <div class="muted">Sistema móvil de cobro de parqueo</div>
-        </div>
-
-        <div class="controls">
-          <input id="search" 
-type="search" 
-placeholder="Buscar o escanear código" 
-style="
-padding:14px 18px;
-width:400px;
-font-size:18px;
-border-radius:12px;
-background:rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.1);
-color:var(--text);
-outline:none;
-"/>
-
-          <button class="btn ghost" id="btnClearAll" title="Limpiar registros">Limpiar</button>
-          <button class="btn primary" id="btnExportXLS" title="Exportar Excel (.xlsx)">Exportar .xlsx</button>
-          <button class="btn" id="btnExportVisualXLS" title="Exportar Excel visual (.xls)">Exportar visual</button>
-          <button class="btn" id="btnPrintSummary" title="Imprimir resumen">Imprimir</button>
-        </div>
-      </div>
-
-      <section id="view-dashboard" class="card view">
-        <div style="display:flex;gap:12px;align-items:flex-start">
-          <div style="flex:1">
-            <div class="card">
-              <h3 style="margin:0">Registrar ingreso</h3><div class="muted" style="margin-top:6px">Diseñado para uso en teléfono móvil.</div>
-              <div style="height:10px"></div>
-              <div class="form-row">
-                <select id="tipo" style="width:190px">
-                  <option value="CARRO">CARRO</option>
-                  <option value="MOTO">MOTO</option>
-                </select>
-                <input id="placa" type="text" placeholder="Placa" style="flex:1;min-width:160px"/>
-                <input id="marca" type="text" placeholder="Marca" style="width:180px"/>
-                <input id="color" type="text" placeholder="Color" style="width:160px"/>
-                <button class="btn primary" id="btnIngresar" title="Ingresar (Enter)">Ingresar</button>
-              </div>
-              <div class="muted" style="margin-top:8px">
-                Tarifas configuradas para carro y moto. Ticket correlativo y código único de 8 dígitos.
-              </div>
-            </div>
-
-            <div class="card" style="margin-top:12px">
-              <h3 style="margin:0">Vehículos activos</h3>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Tipo</th>
-                      <th>Placa</th>
-                      <th>Marca</th>
-                      <th>Color</th>
-                      <th>Código</th>
-                      <th>Ingreso</th>
-                      <th>Salida</th>
-                      <th>Total Q</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody id="registro"></tbody>
-                </table>
-              </div>
-            </div>
+    <main class="content">
+      <section class="view" data-view="dashboard">
+        <div class="card">
+          <h2 class="section-title">Registrar ingreso</h2>
+          <div class="stack">
+            <select id="tipo">
+              <option value="CARRO">CARRO</option>
+              <option value="MOTO">MOTO</option>
+            </select>
+            <input id="placa" type="text" placeholder="Placa" />
+            <input id="marca" type="text" placeholder="Marca" />
+            <input id="color" type="text" placeholder="Color" />
+            <button id="btnIngresar" class="btn btn-primary">Registrar e imprimir ticket</button>
           </div>
-
-          <aside class="rightcol">
-            <div class="card">
-              <h3 style="margin:0">Resumen del turno</h3>
-              <div class="stats" style="margin-top:12px">
-                <div class="stat"><h3 id="statActivos">0</h3><p>Activos</p></div>
-                <div class="stat"><h3 id="statTotal">Q0.00</h3><p>Recaudado</p></div>
-                <div class="stat"><h3 id="statEntradas">0</h3><p>Entradas hoy</p></div>
-              </div>
-              <div style="height:12px"></div>
-              <canvas id="chart" height="220"></canvas>
-            </div>
-
-            <div class="card">
-              <h4 style="margin:0">Acciones rápidas</h4>
-              <div style="height:8px"></div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="btn" id="iconExportXLS" title="Exportar .xlsx">Excel</button>
-                <button class="btn" id="iconPrint" title="Imprimir resumen">Imprimir</button>
-                <button class="btn" id="iconClear" title="Limpiar registros">Limpiar</button>
-              </div>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <section id="view-registro" class="card view" style="display:none">
-        <h3>Historial completo</h3>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Tipo</th>
-                <th>Placa</th>
-                <th>Marca</th>
-                <th>Color</th>
-                <th>Código</th>
-                <th>Ingreso</th>
-                <th>Salida</th>
-                <th>Min</th>
-                <th>Total Q</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="historial"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Ventas por rango de fechas -->
-      <section id="view-ventas" class="card view" style="display:none">
-        <h3>Ventas por rango de fechas</h3>
-        <div class="form-row" style="margin-top:10px">
-          <input id="ventasDesde" type="date"/>
-          <input id="ventasHasta" type="date"/>
-          <button class="btn primary" id="btnFiltrarVentas">Aplicar filtro</button>
-          <span class="pill" id="ventasResumen">Total: Q0.00 — 0 ventas</span>
-        </div>
-        <div class="table-wrap" style="margin-top:12px">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Tipo</th>
-                <th>Placa</th>
-                <th>Marca</th>
-                <th>Color</th>
-                <th>Código</th>
-                <th>Ingreso</th>
-                <th>Salida</th>
-                <th>Min</th>
-                <th>Total Q</th>
-              </tr>
-            </thead>
-            <tbody id="ventasTable"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="view-export" class="card view" style="display:none">
-        <h3>Exportar</h3>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button class="btn primary" id="exportJSON">Service not available</button>
-          <button class="btn" id="importJSONBtn">Service not available</button>
-          <input type="file" id="fileImport" accept="application/json" style="display:none"/>
-        </div>
-        <div id="importResult" class="muted" style="margin-top:12px"></div>
-      </section>
-
-      <section id="view-users" class="card view" style="display:none">
-        <h3>Usuarios</h3>
-        <div style="display:flex;gap:12px;align-items:center">
-          <input id="u_name" type="text" placeholder="Nombre usuario" style="flex:1"/>
-          <input id="u_role" type="text" placeholder="Rol (ej: cajero)" style="width:160px"/>
-          <button class="btn primary" id="btnAddUser">Agregar</button>
-        </div>
-        <ul class="users-list" id="usersList"></ul>
-      </section>
-
-      <section id="view-cierres" class="card view" style="display:none">
-        <h3>Cierres diarios</h3>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <button class="btn primary" id="btnGenerarCierre">Generar cierre</button>
-          <button class="btn" id="btnExportCierresXLS">Exportar cierres (EXCEL)</button>
-          <span class="pill" id="cierreHint">Cierre = ventas cobradas (con salida).</span>
+          <div style="margin-top:12px" class="pill">Ticket 55mm • numerado • uso móvil</div>
         </div>
 
-        <div class="card" style="margin-top:12px">
-          <h4 style="margin:0">Cierre de caja (formas de pago)</h4>
-          <div class="muted" style="margin-top:6px">Ingresa lo recibido para comparar contra el total del sistema.</div>
-          <div class="form-row" style="margin-top:10px">
-            <input id="p_efectivo" type="text" placeholder="Efectivo Q" style="width:160px"/>
-            <input id="p_tarjeta" type="text" placeholder="Tarjeta Q" style="width:160px"/>
-            <input id="p_transferencia" type="text" placeholder="Transferencia Q" style="width:180px"/>
-            <input id="p_otros" type="text" placeholder="Otros Q" style="width:140px"/>
-            <span class="pill" id="cajaComparativa">Sistema: Q0.00 • Recibido: Q0.00 • Dif: Q0.00</span>
-          </div>
-          <div class="muted" style="margin-top:8px">
-            Tip: puedes dejar en blanco lo que no uses. Al generar cierre se imprime ticket de 55mm con detalle.
+        <div class="stats">
+          <div class="stat"><div id="statActivos" class="num">0</div><div class="lbl">Activos</div></div>
+          <div class="stat"><div id="statVentas" class="num">Q0</div><div class="lbl">Cobrado</div></div>
+          <div class="stat"><div id="statHoy" class="num">0</div><div class="lbl">Ingresos hoy</div></div>
+        </div>
+
+        <div class="card">
+          <h2 class="section-title">Acciones rápidas</h2>
+          <div class="toolbar">
+            <button class="btn btn-secondary" id="btnQuickCobro">Cobrar salida</button>
+            <button class="btn btn-secondary" id="btnQuickActivos">Ver activos</button>
+            <button class="btn btn-secondary" id="btnQuickHistorial">Ver historial</button>
+            <button class="btn btn-secondary" id="btnQuickCierre">Generar cierre</button>
           </div>
         </div>
+      </section>
 
-        <div style="height:12px"></div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>#</th><th>Fecha</th><th>Cantidad</th><th>Total Q</th><th>Acciones</th></tr></thead>
-            <tbody id="cierresTable"></tbody>
-          </table>
+      <section class="view hidden" data-view="activos">
+        <div class="card">
+          <div class="sheet-head" style="margin-bottom:10px">
+            <div>
+              <div class="sheet-title">Vehículos activos</div>
+              <div class="muted">Solo los que aún no han salido</div>
+            </div>
+          </div>
+          <div id="activosList" class="record-list"></div>
         </div>
       </section>
 
-      <section id="view-config" class="card view" style="display:none">
-        <h3>Configuración</h3>
-        <div style="margin-top:8px" class="muted">----------------------------------</div>
-        <div style="margin-top:10px">© MarckBusiness 2026 — Parqueo El Centro</div>
-        <div style="height:8px"></div>
-        <button class="btn" id="btnResetTarifas">Button Disabled</button>
+      <section class="view hidden" data-view="historial">
+        <div class="card">
+          <div class="sheet-head" style="margin-bottom:10px">
+            <div>
+              <div class="sheet-title">Historial completo</div>
+              <div class="muted">Entradas y salidas registradas</div>
+            </div>
+          </div>
+          <div class="search-box" style="margin-bottom:10px">
+            <input id="searchHistory" type="search" placeholder="Buscar placa, marca, color o código" />
+          </div>
+          <div id="historialList" class="record-list"></div>
+        </div>
       </section>
 
-      <footer>© MarckBusiness 2026 — Parqueo El Centro</footer>
+      <section class="view hidden" data-view="ventas">
+        <div class="card">
+          <div class="sheet-head" style="margin-bottom:10px">
+            <div>
+              <div class="sheet-title">Ventas</div>
+              <div class="muted">Filtra por fecha</div>
+            </div>
+          </div>
+          <div class="stack">
+            <input id="ventasDesde" type="date" />
+            <input id="ventasHasta" type="date" />
+            <button id="btnFiltrarVentas" class="btn btn-primary">Aplicar filtro</button>
+          </div>
+          <div id="ventasResumen" style="margin-top:12px" class="pill">Total: Q0.00 • 0 ventas</div>
+          <div id="ventasList" class="record-list" style="margin-top:12px"></div>
+        </div>
+      </section>
+
+      <section class="view hidden" data-view="cierres">
+        <div class="card stack">
+          <div>
+            <div class="sheet-title">Cierre de caja</div>
+            <div class="muted">Compara lo recibido con el total del sistema</div>
+          </div>
+          <input id="p_efectivo" type="text" placeholder="Efectivo Q" />
+          <input id="p_tarjeta" type="text" placeholder="Tarjeta Q" />
+          <input id="p_transferencia" type="text" placeholder="Transferencia Q" />
+          <input id="p_otros" type="text" placeholder="Otros Q" />
+          <div id="cajaComparativa" class="pill">Sistema: Q0.00 • Recibido: Q0.00 • Dif: Q0.00</div>
+          <button id="btnGenerarCierre" class="btn btn-primary">Generar cierre</button>
+        </div>
+        <div class="card">
+          <div class="sheet-title" style="margin-bottom:10px">Historial de cierres</div>
+          <div id="cierresList" class="record-list"></div>
+        </div>
+      </section>
+
+      <section class="view hidden" data-view="usuarios">
+        <div class="card stack">
+          <div>
+            <div class="sheet-title">Usuarios</div>
+            <div class="muted">Registro simple local</div>
+          </div>
+          <input id="u_name" type="text" placeholder="Nombre" />
+          <input id="u_role" type="text" placeholder="Rol" />
+          <button id="btnAddUser" class="btn btn-primary">Agregar usuario</button>
+          <div id="usersList" class="record-list"></div>
+        </div>
+      </section>
+
+      <section class="view hidden" data-view="info">
+        <div class="card stack">
+          <div class="sheet-title">Información</div>
+          <div class="detail"><div class="k">Negocio</div><div class="v">Parqueo El Centro</div></div>
+          <div class="detail"><div class="k">Dirección</div><div class="v">2a. Avenida y 1a. Calle Zona 2, Salcajá</div></div>
+          <div class="detail"><div class="k">Tarifa carro</div><div class="v">0 a 30 min = Q10 • 31 a 60 min = Q15 • luego +Q5 por cada fracción adicional de 30 min</div></div>
+          <div class="detail"><div class="k">Tarifa moto</div><div class="v">Q5 la hora o fracción</div></div>
+          <div class="detail"><div class="k">Login</div><div class="v">admin / 123</div></div>
+        </div>
+      </section>
     </main>
-  </div>
+  </section>
 
-  <!-- Modal Cobro -->
-  <div class="modal-backdrop" id="cobroBackdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cobroTitle">
-      <div class="modal-head">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="title" id="cobroTitle">💳 COBRO MÓVIL</div>
-          <span class="pill">Escanea/ingresa el código (8 dígitos)</span>
+  <div id="cobroModal" class="modal-backdrop">
+    <div class="sheet">
+      <div class="sheet-head">
+        <div>
+          <div class="sheet-title">Cobrar salida</div>
+          <div class="muted">Busca por código del ticket</div>
         </div>
-        <button class="btn ghost" id="btnCerrarCobro">Cerrar</button>
+        <button class="icon-btn" id="btnCerrarCobro">✕</button>
       </div>
-
-      <div class="modal-body">
-        <div class="modal-col" style="display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center">
-          <img src="IMAGEN1.png" alt="logo" class="modal-logo">
-          <input id="cobroCodigo" type="text" inputmode="numeric" placeholder="CÓDIGO (8 dígitos)" maxlength="8"
-                 style="width:100%;max-width:260px;text-align:center;font-weight:900;font-size:18px;letter-spacing:2px"/>
-          <div class="muted" style="text-align:center">
-            Tip: el lector escribe el código y presiona Enter.
-          </div>
+      <div class="stack">
+        <input id="cobroCodigo" type="text" inputmode="numeric" placeholder="Código del ticket" />
+        <button id="btnBuscarCobro" class="btn btn-secondary">Buscar</button>
+        <div id="cobroData" class="empty">Ingresa el código para mostrar el detalle.</div>
+        <div class="actions">
+          <button id="btnLimpiarCobro" class="btn btn-secondary">Limpiar</button>
+          <button id="btnConfirmarCobro" class="btn btn-primary">Cobrar e imprimir</button>
         </div>
-
-        <div class="modal-col">
-          <div class="kv">
-            <div class="k">Tipo</div><div class="v" id="c_tipo">-</div>
-            <div class="k">Placa</div><div class="v" id="c_placa">-</div>
-            <div class="k">Marca</div><div class="v" id="c_marca">-</div>
-            <div class="k">Color</div><div class="v" id="c_color">-</div>
-            <div class="k">Ingreso</div><div class="v" id="c_ingreso">-</div>
-            <div class="k">Salida</div><div class="v" id="c_salida">-</div>
-            <div class="k">Minutos</div><div class="v" id="c_min">-</div>
-            <div class="k">Total</div><div class="v" id="c_total">Q0.00</div>
-          </div>
-          <div class="muted" style="margin-top:10px">
-            El total se calcula automáticamente según las tarifas.
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn ghost" id="btnLimpiarCobro">Limpiar</button>
-        <button class="btn danger" id="btnCancelarCobro">Cancelar</button>
-        <button class="btn primary" id="btnConfirmarCobro">Cobrar y cerrar</button>
       </div>
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = 'ParqueoElCentro_v2';
-    const USERS_KEY = 'ParqueoElCentro_users_v2';
-    const CIERRES_KEY = 'ParqueoElCentro_cierres_v2';
+    const APP_KEY = 'parqueo_el_centro_mobile_v2';
+    const USERS_KEY = APP_KEY + '_users';
+    const CIERRES_KEY = APP_KEY + '_cierres';
+    const SESSION_KEY = APP_KEY + '_session';
+    const TICKET_SEQ_KEY = APP_KEY + '_ticket_seq';
+    const CIERRE_SEQ_KEY = APP_KEY + '_cierre_seq';
 
-    let registros = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    let registros = JSON.parse(localStorage.getItem(APP_KEY) || '[]');
     let users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
     let cierres = JSON.parse(localStorage.getItem(CIERRES_KEY) || '[]');
-    const TICKET_SEQ_KEY = 'ParqueoElCentro_ticket_seq_v1';
-    registros = registros.map(r => ({...r, ticketNo: r.ticketNo || 0}));
+    let currentView = 'dashboard';
+    let cobroTargetId = null;
 
-    function uid(p='id'){return p+'_'+Math.random().toString(36).slice(2,9)}
-    function save(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(registros));
+    function saveAll(){
+      localStorage.setItem(APP_KEY, JSON.stringify(registros));
       localStorage.setItem(USERS_KEY, JSON.stringify(users));
       localStorage.setItem(CIERRES_KEY, JSON.stringify(cierres));
     }
-    function getNextTicketNumber(){
-      const next = Number(localStorage.getItem(TICKET_SEQ_KEY) || '0') + 1;
-      localStorage.setItem(TICKET_SEQ_KEY, String(next));
-      return next;
+    function esc(s){
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
-    function formatTicketNumber(n){
-      return String(Number(n||0)).padStart(6,'0');
+    function uid(prefix='id'){ return prefix + '_' + Math.random().toString(36).slice(2,9); }
+    function money(n){ return 'Q' + Number(n || 0).toFixed(2); }
+    function dt(iso){ return new Date(iso).toLocaleString(); }
+    function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
+    function getNum(v){
+      const x = String(v || '').replace(/,/g,'.').replace(/[^\d.-]/g,'');
+      const n = Number(x);
+      return Number.isFinite(n) ? n : 0;
     }
-    function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
-
-    // ===== Seguridad de borrado (PIN) =====
-    const DELETE_PIN = "363534";
-    function pedirClaveBorrado(){
-      const x = prompt("Clave para borrar:");
-      if(x === null) return false;
-      if(String(x).trim() !== DELETE_PIN){
-        alert("Clave incorrecta.");
-        return false;
-      }
-      return true;
+    function getNextTicketNo(){
+      let n = Number(localStorage.getItem(TICKET_SEQ_KEY) || '0') + 1;
+      localStorage.setItem(TICKET_SEQ_KEY, String(n));
+      return String(n).padStart(6,'0');
     }
-
-    // ====== TARIFAS ======
-    // CARRO: 0-30 min Q10, 31-60 min Q15, luego +Q5 por cada fracción adicional de 30 min.
-    // MOTO: Q5 por cada hora o fracción.
-    const TARIFAS = {
-      CARRO: { primerBloque30: 10, primerBloque60: 15, adicional30: 5 },
-      MOTO:  { hora: 5, unit: 'HOUR' },
-      CAMION_PEQUENO: { primerBloque30: 10, primerBloque60: 15, adicional30: 5 },
-      CAMION_MEDIANO: { primerBloque30: 10, primerBloque60: 15, adicional30: 5 },
-      CAMION_GRANDE:  { primerBloque30: 10, primerBloque60: 15, adicional30: 5 }
-    };
-
-    function calcularPago(horaIngreso, horaSalida, tipo){
-      const entrada = new Date(horaIngreso), salida = new Date(horaSalida);
-      const minutos = Math.max(1, Math.ceil((salida - entrada)/60000));
-      const t = TARIFAS[tipo] || TARIFAS.CARRO;
-
-      if ((tipo || 'CARRO') === 'MOTO') {
-        const horas = Math.ceil(minutos / 60);
-        return { minutos, total: horas * t.hora };
-      }
-
-      if (minutos <= 30) return { minutos, total: t.primerBloque30 };
-      if (minutos <= 60) return { minutos, total: t.primerBloque60 };
-
-      const minutosExtra = minutos - 60;
-      const bloquesExtra = Math.ceil(minutosExtra / 30);
-      return { minutos, total: t.primerBloque60 + (bloquesExtra * t.adicional30) };
+    function getNextCierreNo(){
+      let n = Number(localStorage.getItem(CIERRE_SEQ_KEY) || '0') + 1;
+      localStorage.setItem(CIERRE_SEQ_KEY, String(n));
+      return String(n).padStart(6,'0');
     }
-
-    // ====== CÓDIGO ÚNICO 8 DÍGITOS ======
-    function generarCodigo8(){
-      for(let k=0;k<8000;k++){
-        const n = Math.floor(10000000 + Math.random()*90000000);
-        const code = String(n);
-        const existe = registros.some(r=>r.codigo===code);
-        if(!existe) return code;
+    function generateCode(){
+      for(let i=0;i<5000;i++){
+        const code = String(Math.floor(10000000 + Math.random()*90000000));
+        if(!registros.some(r => r.codigo === code && !r.horaSalida)) return code;
       }
       return String(Date.now()).slice(-8);
     }
-
-    // ====== IMPRESIÓN ======
-    const TICKET_IMG='IMAGEN1.png';
-
-    function imprimirHTMLWindow(html){
-      const w=window.open('','_blank','width=320,height=640');
-      if(!w){alert('Permite popups en el navegador.');return}
-      w.document.write(html);
-      w.document.close();
-      setTimeout(()=>w.print(),450);
+    function tipoLabel(tipo){ return tipo === 'MOTO' ? 'MOTO' : 'CARRO'; }
+    function calcularPago(horaIngreso, horaSalida, tipo){
+      const entrada = new Date(horaIngreso);
+      const salida = new Date(horaSalida);
+      const minutos = Math.max(1, Math.ceil((salida - entrada)/60000));
+      if(tipo === 'MOTO'){
+        return { minutos, total: Math.ceil(minutos / 60) * 5 };
+      }
+      if(minutos <= 30) return { minutos, total: 10 };
+      if(minutos <= 60) return { minutos, total: 15 };
+      const extraMin = minutos - 60;
+      const extraBlocks = Math.ceil(extraMin / 30);
+      return { minutos, total: 15 + (extraBlocks * 5) };
     }
 
-    function createBarcodeDataUrl(text){
-      const canvas=document.createElement('canvas');
-      JsBarcode(canvas, String(text), {format:'code128',displayValue:false,height:40,margin:6});
+    function barcodeDataUrl(text){
+      const canvas = document.createElement('canvas');
+      JsBarcode(canvas, String(text), { format:'CODE128', displayValue:false, height:40, margin:4 });
       return canvas.toDataURL('image/png');
     }
-
-    function tipoLabel(tipo){
-      return ({
-        CARRO:'CARRO',
-        MOTO:'MOTO',
-        CAMION_PEQUENO:'CAMIÓN PEQUEÑO',
-        CAMION_MEDIANO:'CAMIÓN MEDIANO',
-        CAMION_GRANDE:'CAMIÓN GRANDE'
-      })[tipo] || 'CARRO';
+    function openPrint(html){
+      const w = window.open('', '_blank', 'width=380,height=640');
+      if(!w){ alert('Debes permitir ventanas emergentes para imprimir.'); return; }
+      w.document.write(html);
+      w.document.close();
+      setTimeout(() => { w.focus(); w.print(); }, 350);
     }
-
-    function imprimirTicket(placa,marca,color,tipo,codigo,hora,ticketNo){
-      const fecha=new Date(hora);
-      const fechaStr=fecha.toLocaleDateString();
-      const horaStr=fecha.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-      const barcodeData=createBarcodeDataUrl(codigo);
-
-      const html=`<html><head><meta charset="utf-8"><title>Ticket</title>
-      <style>
-        @page{size:55mm auto;margin:0}
-        body{font-family:monospace;text-align:center;padding:6px;color:#000;font-size:11px}
-        .line{border-top:1px dashed #000;margin:6px 0}
-        .big{font-size:14pt;font-weight:700}
-        .mid{font-size:11pt;font-weight:700}
-        img.logo{max-width:150px;height:auto}
-        .small{font-size:10px}
-      </style></head><body>
-      <img src="${TICKET_IMG}" class="logo"/>
-      <div class="line"></div>
-      <div class="big">PARQUEO EL CENTRO</div>
-      <div class="small">2a. Avenida y 1a. Calle Zona 2, Salcaja</div>
-      <div class="line"></div>
-      <div class="mid">TICKET DE INGRESO</div>
-      <div>No. Ticket: <b>${formatTicketNumber(ticketNo)}</b></div>
-      <div class="small">Tipo: <b>${escapeHtml(tipoLabel(tipo))}</b></div>
-      <div class="line"></div>
-      <div>FECHA</div><div>${fechaStr}</div>
-      <div>HORA</div><div class="big">${horaStr}</div>
-      <div class="line"></div>
-      <div>PLACA</div><div class="big">${escapeHtml(placa)}</div>
-      <div>MARCA</div><div>${escapeHtml(marca)}</div>
-      <div>COLOR</div><div>${escapeHtml(color||'-')}</div>
-      <div class="line"></div>
-      <div>CÓDIGO</div><div class="big">${escapeHtml(codigo)}</div>
-      <div><img src="${barcodeData}" class="barcode-img"/></div>
-      <div class="line"></div>
-      <div class="small">Conserve este ticket para su salida</div>
+    function ticketBaseStyles(){
+      return `
+        <style>
+          @page{size:55mm auto;margin:0}
+          html,body{margin:0;padding:0;background:#fff;color:#000;font-family:monospace}
+          body{width:55mm;padding:2.5mm}
+          .center{text-align:center}
+          .b{font-weight:700}
+          .lg{font-size:13pt;font-weight:800}
+          .md{font-size:10pt;font-weight:700}
+          .sm{font-size:8.5pt}
+          .line{border-top:1px dashed #000;margin:6px 0}
+          img.logo{max-width:100%;height:auto}
+          img.bar{width:100%;height:18mm;object-fit:contain}
+        </style>`;
+    }
+    function printIngreso(rec){
+      const barcode = barcodeDataUrl(rec.codigo);
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Ticket ${rec.ticketNo}</title>${ticketBaseStyles()}</head><body>
+        <div class="center b lg">Parqueo El Centro</div>
+        <div class="center sm">2a. Avenida y 1a. Calle Zona 2, Salcajá</div>
+        <div class="line"></div>
+        <div class="center md">TICKET DE INGRESO</div>
+        <div class="center sm">No. ${esc(rec.ticketNo)}</div>
+        <div class="line"></div>
+        <div class="sm">Tipo: <span class="b">${esc(tipoLabel(rec.tipo))}</span></div>
+        <div class="sm">Placa: <span class="b">${esc(rec.placa)}</span></div>
+        <div class="sm">Marca: <span class="b">${esc(rec.marca || '-')}</span></div>
+        <div class="sm">Color: <span class="b">${esc(rec.color || '-')}</span></div>
+        <div class="sm">Código: <span class="b">${esc(rec.codigo)}</span></div>
+        <div class="sm">Ingreso: <span class="b">${esc(dt(rec.horaIngreso))}</span></div>
+        <div class="line"></div>
+        <div class="center"><img class="bar" src="${barcode}" /></div>
+        <div class="line"></div>
+        <div class="center sm">Conserve su ticket</div>
       </body></html>`;
-      imprimirHTMLWindow(html);
+      openPrint(html);
     }
-
-    function imprimirFactura(d){
-      const ticketNo = d.ticketNo || 0;
-      const entrada=new Date(d.horaIngreso), salida=new Date(d.horaSalida);
-      const calc = calcularPago(d.horaIngreso, d.horaSalida, d.tipo);
-      const barcodeData=createBarcodeDataUrl(d.codigo);
-
-      const html=`<html><head><meta charset="utf-8"><title>Factura</title>
-      <style>
-        @page{size:55mm auto;margin:0}
-        body{font-family:monospace;text-align:center;padding:6px;color:#000;font-size:11px}
-        .line{border-top:1px dashed #000;margin:6px 0}
-        .big{font-size:14pt;font-weight:700}
-        .mid{font-size:11pt;font-weight:700}
-        img.logo{max-width:150px;height:auto}
-        .small{font-size:10px}
-      </style></head><body>
-      <img src="${TICKET_IMG}" class="logo"/>
-      <div class="line"></div>
-      <div class="big">PARQUEO EL CENTRO</div>
-      <div class="small">2a. Avenida y 1a. Calle Zona 2, Salcaja</div>
-      <div class="line"></div>
-      <div class="mid">TICKET DE COBRO</div>
-      <div>No. Ticket: <b>${formatTicketNumber(ticketNo)}</b></div>
-      <div class="small">Tipo: <b>${escapeHtml(tipoLabel(d.tipo))}</b></div>
-      <div class="line"></div>
-
-      <div>PLACA</div><div class="big">${escapeHtml(d.placa)}</div>
-      <div>MARCA</div><div>${escapeHtml(d.marca)}</div>
-      <div>COLOR</div><div>${escapeHtml(d.color||'-')}</div>
-      <div class="line"></div>
-
-      <div>ENTRADA</div><div>${entrada.toLocaleString()}</div>
-      <div>SALIDA</div><div>${salida.toLocaleString()}</div>
-      <div class="line"></div>
-
-      <div>TIEMPO TOTAL</div><div class="big">${calc.minutos} min</div>
-      <div>TOTAL A PAGAR</div><div class="big">Q${Number(d.total).toFixed(2)}</div>
-      <div class="line"></div>
-      <div>CÓDIGO</div><div>${escapeHtml(d.codigo)}</div>
-      <div><img src="${barcodeData}" class="barcode-img"/></div>
-      <div class="line"></div>
-      <div class="small">Gracias por su visita</div>
+    function printSalida(rec){
+      const calc = calcularPago(rec.horaIngreso, rec.horaSalida, rec.tipo);
+      const barcode = barcodeDataUrl(rec.codigo);
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Cobro ${rec.ticketNo}</title>${ticketBaseStyles()}</head><body>
+        <div class="center b lg">Parqueo El Centro</div>
+        <div class="center sm">2a. Avenida y 1a. Calle Zona 2, Salcajá</div>
+        <div class="line"></div>
+        <div class="center md">TICKET DE COBRO</div>
+        <div class="center sm">No. ${esc(rec.ticketNo)}</div>
+        <div class="line"></div>
+        <div class="sm">Tipo: <span class="b">${esc(tipoLabel(rec.tipo))}</span></div>
+        <div class="sm">Placa: <span class="b">${esc(rec.placa)}</span></div>
+        <div class="sm">Código: <span class="b">${esc(rec.codigo)}</span></div>
+        <div class="sm">Ingreso: <span class="b">${esc(dt(rec.horaIngreso))}</span></div>
+        <div class="sm">Salida: <span class="b">${esc(dt(rec.horaSalida))}</span></div>
+        <div class="sm">Tiempo: <span class="b">${calc.minutos} min</span></div>
+        <div class="line"></div>
+        <div class="center lg">TOTAL ${money(rec.total)}</div>
+        <div class="line"></div>
+        <div class="center"><img class="bar" src="${barcode}" /></div>
+        <div class="line"></div>
+        <div class="center sm">Gracias por su visita</div>
       </body></html>`;
-      imprimirHTMLWindow(html);
+      openPrint(html);
     }
-
-    function imprimirCierreTicket(cierre){
-      const pagos = cierre.pagos || {efectivo:0, tarjeta:0, transferencia:0, otros:0};
-      const totalSistema = Number(cierre.totalSistema || 0);
-      const totalRecibido = Number(cierre.totalRecibido || 0);
-      const dif = Number(cierre.diferencia || 0);
-      const estado = dif === 0 ? "CUADRADO" : (dif > 0 ? "SOBRANTE" : "FALTANTE");
-
-      const fecha = cierre.fecha || new Date().toLocaleString();
-      const html = `<html><head><meta charset="utf-8"><title>Cierre</title>
-      <style>
-        @page{size:55mm auto;margin:0}
-        body{font-family:monospace;text-align:center;padding:10px;color:#000}
-        .line{border-top:1px dashed #000;margin:10px 0}
-        .big{font-size:18pt;font-weight:700}
-        .mid{font-size:14pt;font-weight:700}
-        img.logo{max-width:220px;height:auto}
-        table{width:100%;border-collapse:collapse;font-size:12px}
-        td{padding:3px 0;text-align:left}
-        td.r{text-align:right}
-      </style></head><body>
-        <img src="${TICKET_IMG}" class="logo"/>
+    function printCierre(cierre){
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Cierre ${cierre.no}</title>${ticketBaseStyles()}</head><body>
+        <div class="center b lg">Parqueo El Centro</div>
+        <div class="center sm">2a. Avenida y 1a. Calle Zona 2, Salcajá</div>
         <div class="line"></div>
-        <div class="big">PARQUEO EL CENTRO</div><div class="mid">CIERRE DE CAJA</div><div class="small">2a. Avenida y 1a. Calle Zona 2, Salcaja</div>
-        <div>${escapeHtml(fecha)}</div>
+        <div class="center md">CIERRE DE CAJA</div>
+        <div class="center sm">No. ${esc(cierre.no)}</div>
+        <div class="center sm">${esc(cierre.fecha)}</div>
         <div class="line"></div>
-
-        <table>
-          <tr><td>Ventas cobradas</td><td class="r"><b>${cierre.cantidadVentas||0}</b></td></tr>
-          <tr><td>Total sistema</td><td class="r"><b>Q${totalSistema.toFixed(2)}</b></td></tr>
-        </table>
-
+        <div class="sm">Ventas: <span class="b">${cierre.cantidad}</span></div>
+        <div class="sm">Sistema: <span class="b">${money(cierre.totalSistema)}</span></div>
+        <div class="sm">Efectivo: <span class="b">${money(cierre.pagos.efectivo)}</span></div>
+        <div class="sm">Tarjeta: <span class="b">${money(cierre.pagos.tarjeta)}</span></div>
+        <div class="sm">Transferencia: <span class="b">${money(cierre.pagos.transferencia)}</span></div>
+        <div class="sm">Otros: <span class="b">${money(cierre.pagos.otros)}</span></div>
+        <div class="sm">Recibido: <span class="b">${money(cierre.totalRecibido)}</span></div>
         <div class="line"></div>
-        <div class="mid">FORMAS DE PAGO</div>
-        <table>
-          <tr><td>Efectivo</td><td class="r">Q${Number(pagos.efectivo||0).toFixed(2)}</td></tr>
-          <tr><td>Tarjeta</td><td class="r">Q${Number(pagos.tarjeta||0).toFixed(2)}</td></tr>
-          <tr><td>Transferencia</td><td class="r">Q${Number(pagos.transferencia||0).toFixed(2)}</td></tr>
-          <tr><td>Otros</td><td class="r">Q${Number(pagos.otros||0).toFixed(2)}</td></tr>
-          <tr><td><b>Total recibido</b></td><td class="r"><b>Q${totalRecibido.toFixed(2)}</b></td></tr>
-        </table>
-
-        <div class="line"></div>
-        <table>
-          <tr><td><b>Comparativa</b></td><td class="r"><b>${estado}</b></td></tr>
-          <tr><td>Diferencia</td><td class="r"><b>Q${dif.toFixed(2)}</b></td></tr>
-        </table>
-
-        <div class="line"></div>
-        <pre>Parqueo El Centro
-Gracias.</pre>
+        <div class="center lg">DIF ${money(cierre.diferencia)}</div>
       </body></html>`;
-      imprimirHTMLWindow(html);
+      openPrint(html);
     }
 
-    // ====== MODAL COBRO ======
-    const cobroBackdrop = document.getElementById('cobroBackdrop');
-    const cobroCodigo = document.getElementById('cobroCodigo');
+    function renderStats(){
+      const activos = registros.filter(r => !r.horaSalida).length;
+      const ventas = registros.filter(r => r.horaSalida).reduce((s,r) => s + Number(r.total || 0), 0);
+      const hoy = registros.filter(r => new Date(r.horaIngreso).toDateString() === new Date().toDateString()).length;
+      document.getElementById('statActivos').textContent = activos;
+      document.getElementById('statVentas').textContent = money(ventas).replace('.00','');
+      document.getElementById('statHoy').textContent = hoy;
+    }
 
-    let cobroIndex = null;
-    let cobroSalidaPreview = null;
+    function recordCard(r, closed=false){
+      const minutos = r.horaSalida ? calcularPago(r.horaIngreso, r.horaSalida, r.tipo).minutos : Math.max(1, Math.ceil((Date.now() - new Date(r.horaIngreso).getTime())/60000));
+      return `
+        <div class="record">
+          <div class="record-head">
+            <div>
+              <div class="record-title">${esc(r.placa || '-')}</div>
+              <div class="muted">${esc(tipoLabel(r.tipo))} • Ticket ${esc(r.ticketNo || '-')}</div>
+            </div>
+            <div class="record-badge ${closed ? 'badge-closed' : 'badge-active'}">${closed ? 'CERRADO' : 'ACTIVO'}</div>
+          </div>
+          <div class="details">
+            <div class="detail"><div class="k">Marca</div><div class="v">${esc(r.marca || '-')}</div></div>
+            <div class="detail"><div class="k">Color</div><div class="v">${esc(r.color || '-')}</div></div>
+            <div class="detail"><div class="k">Código</div><div class="v">${esc(r.codigo)}</div></div>
+            <div class="detail"><div class="k">Ingreso</div><div class="v">${esc(dt(r.horaIngreso))}</div></div>
+            <div class="detail"><div class="k">Tiempo</div><div class="v">${minutos} min</div></div>
+            <div class="detail"><div class="k">Total</div><div class="v">${closed ? money(r.total) : 'Pendiente'}</div></div>
+          </div>
+          <div class="actions ${closed ? '' : ''}">
+            ${closed
+              ? `<button class="btn btn-secondary" onclick="reprintSalida('${r.id}')">Reimprimir</button>`
+              : `<button class="btn btn-primary" onclick="openCobroWithCode('${r.codigo}')">Cobrar</button>
+                 <button class="btn btn-secondary" onclick="reprintIngreso('${r.id}')">Reimprimir</button>`}
+          </div>
+        </div>`;
+    }
 
-    function abrirCobro(index=null){
-      cobroIndex = index;
-      cobroSalidaPreview = null;
-      cobroBackdrop.style.display='flex';
-      cobroBackdrop.setAttribute('aria-hidden','false');
-
-      if(index==null){
-        cobroCodigo.value='';
-        setCobroDetalle(null);
-      } else {
-        const r = registros[index];
-        cobroCodigo.value = (r?.codigo || '');
-        setCobroDetalle(r);
+    function renderActivos(){
+      const wrap = document.getElementById('activosList');
+      const data = registros.filter(r => !r.horaSalida).sort((a,b) => new Date(b.horaIngreso)-new Date(a.horaIngreso));
+      wrap.innerHTML = data.length ? data.map(r => recordCard(r,false)).join('') : '<div class="empty">No hay vehículos activos.</div>';
+    }
+    function renderHistorial(){
+      const q = document.getElementById('searchHistory').value.trim().toLowerCase();
+      const wrap = document.getElementById('historialList');
+      let data = [...registros].sort((a,b) => new Date(b.horaIngreso)-new Date(a.horaIngreso));
+      if(q){
+        data = data.filter(r => [r.placa,r.marca,r.color,r.codigo,r.ticketNo].join(' ').toLowerCase().includes(q));
       }
-
-      setTimeout(()=>cobroCodigo.focus(), 80);
-      setTimeout(()=>cobroCodigo.select?.(), 120);
+      wrap.innerHTML = data.length ? data.map(r => recordCard(r,!!r.horaSalida)).join('') : '<div class="empty">No se encontraron registros.</div>';
+    }
+    function renderVentas(){
+      const desde = document.getElementById('ventasDesde').value;
+      const hasta = document.getElementById('ventasHasta').value;
+      let data = registros.filter(r => r.horaSalida);
+      if(desde){
+        const d = new Date(desde + 'T00:00:00').getTime();
+        data = data.filter(r => new Date(r.horaSalida).getTime() >= d);
+      }
+      if(hasta){
+        const h = new Date(hasta + 'T23:59:59').getTime();
+        data = data.filter(r => new Date(r.horaSalida).getTime() <= h);
+      }
+      data.sort((a,b) => new Date(b.horaSalida)-new Date(a.horaSalida));
+      const total = data.reduce((s,r) => s + Number(r.total || 0), 0);
+      document.getElementById('ventasResumen').textContent = `Total: ${money(total)} • ${data.length} ventas`;
+      document.getElementById('ventasList').innerHTML = data.length ? data.map(r => recordCard(r,true)).join('') : '<div class="empty">No hay ventas en ese rango.</div>';
+    }
+    function renderUsers(){
+      const wrap = document.getElementById('usersList');
+      wrap.innerHTML = users.length ? users.map((u,i) => `
+        <div class="record">
+          <div class="record-head">
+            <div>
+              <div class="record-title">${esc(u.name)}</div>
+              <div class="muted">${esc(u.role || '-')}</div>
+            </div>
+            <button class="btn btn-danger" onclick="deleteUser(${i})">Eliminar</button>
+          </div>
+        </div>`).join('') : '<div class="empty">No hay usuarios registrados.</div>';
+    }
+    function renderCierres(){
+      const wrap = document.getElementById('cierresList');
+      wrap.innerHTML = cierres.length ? [...cierres].reverse().map((c, idxRev) => {
+        const realIndex = cierres.length - 1 - idxRev;
+        return `
+          <div class="record">
+            <div class="record-head">
+              <div>
+                <div class="record-title">Cierre ${esc(c.no)}</div>
+                <div class="muted">${esc(c.fecha)}</div>
+              </div>
+              <div class="record-badge badge-closed">${money(c.totalSistema)}</div>
+            </div>
+            <div class="details">
+              <div class="detail"><div class="k">Ventas</div><div class="v">${c.cantidad}</div></div>
+              <div class="detail"><div class="k">Recibido</div><div class="v">${money(c.totalRecibido)}</div></div>
+              <div class="detail"><div class="k">Diferencia</div><div class="v">${money(c.diferencia)}</div></div>
+              <div class="detail"><div class="k">Efectivo</div><div class="v">${money(c.pagos.efectivo)}</div></div>
+            </div>
+            <div class="actions single"><button class="btn btn-secondary" onclick="reprintCierre(${realIndex})">Reimprimir cierre</button></div>
+          </div>`;
+      }).join('') : '<div class="empty">No hay cierres registrados.</div>';
     }
 
-    function cerrarCobro(){
-      cobroBackdrop.style.display='none';
-      cobroBackdrop.setAttribute('aria-hidden','true');
-      cobroIndex = null;
-      cobroSalidaPreview = null;
-      cobroCodigo.value='';
+    function updateCajaComparativa(){
+      const totalSistema = registros.filter(r => r.horaSalida).reduce((s,r) => s + Number(r.total || 0), 0);
+      const ef = getNum(document.getElementById('p_efectivo').value);
+      const ta = getNum(document.getElementById('p_tarjeta').value);
+      const tr = getNum(document.getElementById('p_transferencia').value);
+      const ot = getNum(document.getElementById('p_otros').value);
+      const recibido = ef + ta + tr + ot;
+      const dif = recibido - totalSistema;
+      document.getElementById('cajaComparativa').textContent = `Sistema: ${money(totalSistema)} • Recibido: ${money(recibido)} • Dif: ${money(dif)}`;
     }
 
-    function setCobroDetalle(r){
-      document.getElementById('c_tipo').innerText = r ? tipoLabel(r.tipo||'CARRO') : '-';
-      document.getElementById('c_placa').innerText = r ? (r.placa||'-') : '-';
-      document.getElementById('c_marca').innerText = r ? (r.marca||'-') : '-';
-      document.getElementById('c_color').innerText = r ? (r.color||'-') : '-';
-      document.getElementById('c_ingreso').innerText = r ? new Date(r.horaIngreso).toLocaleString() : '-';
+    function setView(view){
+      currentView = view;
+      document.querySelectorAll('.view').forEach(el => el.classList.toggle('hidden', el.dataset.view !== view));
+      document.querySelectorAll('.menu-item[data-view]').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+      closeDrawer();
+      if(view === 'activos') renderActivos();
+      if(view === 'historial') renderHistorial();
+      if(view === 'ventas') renderVentas();
+      if(view === 'usuarios') renderUsers();
+      if(view === 'cierres') renderCierres();
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
 
-      if(!r){
-        document.getElementById('c_salida').innerText = '-';
-        document.getElementById('c_min').innerText = '-';
-        document.getElementById('c_total').innerText = 'Q0.00';
+    function openDrawer(){
+      document.getElementById('drawer').classList.add('open');
+      document.getElementById('drawerBackdrop').classList.add('open');
+    }
+    function closeDrawer(){
+      document.getElementById('drawer').classList.remove('open');
+      document.getElementById('drawerBackdrop').classList.remove('open');
+    }
+
+    function openCobro(){ document.getElementById('cobroModal').classList.add('show'); }
+    function closeCobro(){ document.getElementById('cobroModal').classList.remove('show'); }
+    function clearCobro(){
+      cobroTargetId = null;
+      document.getElementById('cobroCodigo').value = '';
+      document.getElementById('cobroData').className = 'empty';
+      document.getElementById('cobroData').innerHTML = 'Ingresa el código para mostrar el detalle.';
+    }
+    function openCobroWithCode(code){
+      openCobro();
+      document.getElementById('cobroCodigo').value = code;
+      buscarCobro();
+    }
+    function buscarCobro(){
+      const code = document.getElementById('cobroCodigo').value.trim();
+      const rec = registros.find(r => r.codigo === code && !r.horaSalida);
+      const box = document.getElementById('cobroData');
+      if(!rec){
+        cobroTargetId = null;
+        box.className = 'empty';
+        box.innerHTML = 'No se encontró un vehículo activo con ese código.';
         return;
       }
-
-      const salida = new Date().toISOString();
-      cobroSalidaPreview = salida;
-
-      const calc = calcularPago(r.horaIngreso, salida, r.tipo||'CARRO');
-      document.getElementById('c_salida').innerText = new Date(salida).toLocaleString();
-      document.getElementById('c_min').innerText = String(calc.minutos);
-      document.getElementById('c_total').innerText = 'Q' + Number(calc.total).toFixed(2);
+      const calc = calcularPago(rec.horaIngreso, new Date().toISOString(), rec.tipo);
+      cobroTargetId = rec.id;
+      box.className = 'record';
+      box.innerHTML = `
+        <div class="record-head">
+          <div>
+            <div class="record-title">${esc(rec.placa)}</div>
+            <div class="muted">${esc(tipoLabel(rec.tipo))} • Ticket ${esc(rec.ticketNo)}</div>
+          </div>
+          <div class="record-badge badge-active">ACTIVO</div>
+        </div>
+        <div class="details">
+          <div class="detail"><div class="k">Marca</div><div class="v">${esc(rec.marca || '-')}</div></div>
+          <div class="detail"><div class="k">Color</div><div class="v">${esc(rec.color || '-')}</div></div>
+          <div class="detail"><div class="k">Ingreso</div><div class="v">${esc(dt(rec.horaIngreso))}</div></div>
+          <div class="detail"><div class="k">Minutos</div><div class="v">${calc.minutos}</div></div>
+          <div class="detail"><div class="k">Código</div><div class="v">${esc(rec.codigo)}</div></div>
+          <div class="detail"><div class="k">Total</div><div class="v">${money(calc.total)}</div></div>
+        </div>`;
+    }
+    function confirmarCobro(){
+      if(!cobroTargetId){ alert('Primero busca un ticket válido.'); return; }
+      const idx = registros.findIndex(r => r.id === cobroTargetId);
+      if(idx < 0){ alert('Registro no encontrado.'); return; }
+      registros[idx].horaSalida = new Date().toISOString();
+      registros[idx].total = calcularPago(registros[idx].horaIngreso, registros[idx].horaSalida, registros[idx].tipo).total;
+      saveAll();
+      printSalida(registros[idx]);
+      renderAll();
+      clearCobro();
+      closeCobro();
+      setView('historial');
     }
 
-    function buscarActivoPorCodigo(code){
-      const idx = registros.findIndex(r => !r.horaSalida && String(r.codigo||'') === String(code));
-      return idx >= 0 ? idx : null;
-    }
-
-    cobroCodigo.addEventListener('input', ()=>{
-      const v = (cobroCodigo.value||'').replace(/\D/g,'').slice(0,8);
-      if(v !== cobroCodigo.value) cobroCodigo.value = v;
-      if(v.length === 8){
-        const idx = buscarActivoPorCodigo(v);
-        if(idx != null){
-          cobroIndex = idx;
-          setCobroDetalle(registros[idx]);
-        } else {
-          setCobroDetalle(null);
-        }
-      }
-    });
-
-    cobroCodigo.addEventListener('keyup', (e)=>{
-      if(e.key === 'Enter'){
-        const v = (cobroCodigo.value||'').replace(/\D/g,'').slice(0,8);
-        if(v.length !== 8) return alert('Ingrese/escanee un código de 8 dígitos.');
-        const idx = buscarActivoPorCodigo(v);
-        if(idx == null) return alert('Código no encontrado o ya cobrado.');
-        cobroIndex = idx;
-        setCobroDetalle(registros[idx]);
-      }
-      if(e.key === 'Escape') cerrarCobro();
-    });
-
-    document.getElementById('btnCerrarCobro').addEventListener('click', cerrarCobro);
-    document.getElementById('btnCancelarCobro').addEventListener('click', cerrarCobro);
-    cobroBackdrop.addEventListener('click', (e)=>{ if(e.target === cobroBackdrop) cerrarCobro(); });
-
-    document.getElementById('btnLimpiarCobro').addEventListener('click', ()=>{
-      cobroIndex = null;
-      cobroSalidaPreview = null;
-      cobroCodigo.value='';
-      setCobroDetalle(null);
-      setTimeout(()=>cobroCodigo.focus(), 80);
-    });
-
-    document.getElementById('btnConfirmarCobro').addEventListener('click', ()=>{
-      if(cobroIndex == null || !registros[cobroIndex]) return alert('No hay vehículo seleccionado para cobrar.');
-      const r = registros[cobroIndex];
-      if(r.horaSalida) return alert('Este registro ya está cobrado.');
-
-      const salida = cobroSalidaPreview || new Date().toISOString();
-      const calc = calcularPago(r.horaIngreso, salida, r.tipo||'CARRO');
-
-      r.horaSalida = salida;
-      r.total = calc.total;
-
-      imprimirFactura(r);
-      actualizarTabla();
-      cerrarCobro();
-    });
-
-    // ====== TABLAS ======
-    function actualizarTabla(){
-      const tbody = document.getElementById('registro');
-      tbody.innerHTML='';
-
-      registros.forEach((r,i)=>{
-        const tr=document.createElement('tr');
-        if(!r.horaSalida) tr.classList.add('active');
-        tr.innerHTML = `
-          <td>${escapeHtml(tipoLabel(r.tipo || 'CARRO'))}</td>
-          <td>${escapeHtml(r.placa)}</td>
-          <td>${escapeHtml(r.marca)}</td>
-          <td>${escapeHtml(r.color || '-')}</td>
-          <td><b>${escapeHtml(r.codigo || '-')}</b><div class="muted">T-${formatTicketNumber(r.ticketNo||0)}</div></td>
-          <td>${new Date(r.horaIngreso).toLocaleString()}</td>
-          <td>${r.horaSalida?new Date(r.horaSalida).toLocaleString():'-'}</td>
-          <td>${r.total!=null?'Q'+Number(r.total).toFixed(2):'-'}</td>
-          <td>
-            ${r.horaSalida?'':`<button class="action-btn exit" data-idx="${i}" data-action="salir">Salir</button>`}
-            <button class="action-btn ticket" data-idx="${i}" data-action="ticket">Ticket</button>
-            <button class="action-btn delete" data-idx="${i}" data-action="delete">Eliminar</button>
-          </td>`;
-        tbody.appendChild(tr);
-      });
-
-      save();
-      actualizarResumen();
-      renderHistorial();
-      renderCierresTable();
-      renderUsers();
-      renderVentas();
-      actualizarComparativaCaja();
-    }
-
-    // Registrar ingreso
-    document.getElementById('btnIngresar').addEventListener('click',()=>{
-      const placaEl=document.getElementById('placa');
-      const marcaEl=document.getElementById('marca');
-      const colorEl=document.getElementById('color');
-      const tipoEl=document.getElementById('tipo');
-
-      const placa=(placaEl.value||'').trim();
-      const marca=(marcaEl.value||'').trim();
-      const color=(colorEl.value||'').trim();
-      const tipo=(tipoEl.value||'CARRO');
-
-      if(!placa||!marca) return alert('Ingrese placa y marca');
-
-      const hora=new Date().toISOString();
-      const codigo = generarCodigo8();
-
-      const rec = { id:uid('r'), tipo, placa, marca, color, codigo, ticketNo:getNextTicketNumber(), horaIngreso:hora, horaSalida:null, total:null };
+    function addIngreso(){
+      const tipo = document.getElementById('tipo').value;
+      const placa = document.getElementById('placa').value.trim().toUpperCase();
+      const marca = document.getElementById('marca').value.trim();
+      const color = document.getElementById('color').value.trim();
+      if(!placa){ alert('Ingresa la placa.'); return; }
+      const rec = {
+        id: uid('r'),
+        tipo,
+        placa,
+        marca,
+        color,
+        codigo: generateCode(),
+        ticketNo: getNextTicketNo(),
+        horaIngreso: new Date().toISOString(),
+        horaSalida: null,
+        total: null
+      };
       registros.push(rec);
-
-      placaEl.value=''; marcaEl.value=''; colorEl.value='';
-      placaEl.focus();
-
-      imprimirTicket(rec.placa, rec.marca, rec.color, rec.tipo, rec.codigo, rec.horaIngreso, rec.ticketNo);
-      actualizarTabla();
-    });
-
-    // Acciones tabla
-    document.getElementById('registro').addEventListener('click',(e)=>{
-      const btn=e.target.closest('button'); if(!btn) return;
-      const idx=Number(btn.dataset.idx), action=btn.dataset.action;
-
-      if(action==='salir'){ abrirCobro(idx); }
-      if(action==='ticket'){ imprimirTicketFromIndex(idx); }
-      if(action==='delete'){
-        if(!pedirClaveBorrado()) return;
-        if(confirm('Eliminar registro?')) { registros.splice(idx,1); actualizarTabla(); }
-      }
-    });
-
-    function imprimirTicketFromIndex(index){
-      const r=registros[index]; if(!r) return;
-      imprimirTicket(r.placa, r.marca, r.color, r.tipo || 'CARRO', r.codigo || generarCodigo8(), r.horaIngreso, r.ticketNo || 0);
+      saveAll();
+      printIngreso(rec);
+      document.getElementById('placa').value = '';
+      document.getElementById('marca').value = '';
+      document.getElementById('color').value = '';
+      renderAll();
+      setView('activos');
     }
 
-    // ====== RESUMEN ======
-    function actualizarResumen(){
-      const activos=registros.filter(r=>!r.horaSalida).length;
-      const total=registros.reduce((s,r)=>s+(r.total||0),0);
-      const hoy=registros.filter(r=>new Date(r.horaIngreso).toDateString()===new Date().toDateString()).length;
-
-      document.getElementById('statActivos').innerText=activos;
-      document.getElementById('statTotal').innerText='Q'+total.toFixed(2);
-      document.getElementById('statEntradas').innerText=hoy;
-
-      renderChart();
+    function addUser(){
+      const name = document.getElementById('u_name').value.trim();
+      const role = document.getElementById('u_role').value.trim();
+      if(!name){ alert('Ingresa el nombre del usuario.'); return; }
+      users.push({ id: uid('u'), name, role });
+      document.getElementById('u_name').value = '';
+      document.getElementById('u_role').value = '';
+      saveAll();
+      renderUsers();
     }
-
-    let chartInstance=null;
-    function renderChart(){
-      const ctx=document.getElementById('chart').getContext('2d');
-      const buckets={};
-      registros.forEach(r=>{
-        const h=new Date(r.horaIngreso).getHours();
-        buckets[h]=(buckets[h]||0)+1
-      });
-      const labels=Array.from({length:24},(_,i)=>String(i).padStart(2,'0')+':00');
-      const data=labels.map(l=>buckets[Number(l.slice(0,2))]||0);
-      if(chartInstance) chartInstance.destroy();
-      chartInstance=new Chart(ctx,{
-        type:'bar',
-        data:{labels,datasets:[{label:'Entradas por hora',data,backgroundColor:'rgba(6,182,212,0.85)'}]},
-        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
-      });
+    function deleteUser(i){
+      if(!confirm('¿Eliminar este usuario?')) return;
+      users.splice(i,1);
+      saveAll();
+      renderUsers();
     }
+    window.deleteUser = deleteUser;
 
-    // ====== HISTORIAL ======
-    function renderHistorial(){
-      const tbody=document.getElementById('historial');
-      tbody.innerHTML='';
-
-      registros.forEach((r,i)=>{
-        const minutos=r.horaSalida?Math.ceil((new Date(r.horaSalida)-new Date(r.horaIngreso))/60000):'-';
-        const tr=document.createElement('tr');
-        tr.innerHTML=`
-          <td>${i+1}</td>
-          <td>${escapeHtml(tipoLabel(r.tipo || 'CARRO'))}</td>
-          <td>${escapeHtml(r.placa)}</td>
-          <td>${escapeHtml(r.marca)}</td>
-          <td>${escapeHtml(r.color || '-')}</td>
-          <td><b>${escapeHtml(r.codigo || '-')}</b><div class="muted">T-${formatTicketNumber(r.ticketNo||0)}</div></td>
-          <td>${new Date(r.horaIngreso).toLocaleString()}</td>
-          <td>${r.horaSalida?new Date(r.horaSalida).toLocaleString():'-'}</td>
-          <td>${minutos}</td>
-          <td>${r.total!=null?'Q'+Number(r.total).toFixed(2):'-'}</td>
-          <td><button class="btn" data-idx="${i}" data-action="view">Ver</button></td>`;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // ====== VENTAS POR RANGO ======
-    function dateToStartISO(dateStr){
-      if(!dateStr) return null;
-      const [y,m,d]=dateStr.split('-').map(Number);
-      return new Date(y, m-1, d, 0,0,0,0).toISOString();
-    }
-    function dateToEndISO(dateStr){
-      if(!dateStr) return null;
-      const [y,m,d]=dateStr.split('-').map(Number);
-      return new Date(y, m-1, d, 23,59,59,999).toISOString();
-    }
-
-    function renderVentas(){
-      const desdeEl=document.getElementById('ventasDesde');
-      const hastaEl=document.getElementById('ventasHasta');
-      const tbody=document.getElementById('ventasTable');
-      const resumen=document.getElementById('ventasResumen');
-      if(!tbody || !resumen) return;
-
-      const desde = dateToStartISO(desdeEl?.value);
-      const hasta = dateToEndISO(hastaEl?.value);
-
-      const ventas = registros.filter(r=>{
-        if(!r.horaSalida) return false;
-        const ts = new Date(r.horaSalida).getTime();
-        if(desde && ts < new Date(desde).getTime()) return false;
-        if(hasta && ts > new Date(hasta).getTime()) return false;
-        return true;
-      });
-
-      tbody.innerHTML='';
-      let total = 0;
-
-      ventas.forEach((r,i)=>{
-        const minutos = Math.ceil((new Date(r.horaSalida)-new Date(r.horaIngreso))/60000);
-        total += (r.total||0);
-        const tr=document.createElement('tr');
-        tr.innerHTML=`
-          <td>${i+1}</td>
-          <td>${escapeHtml(tipoLabel(r.tipo||'CARRO'))}</td>
-          <td>${escapeHtml(r.placa)}</td>
-          <td>${escapeHtml(r.marca)}</td>
-          <td>${escapeHtml(r.color||'-')}</td>
-          <td><b>${escapeHtml(r.codigo||'-')}</b><div class="muted">T-${formatTicketNumber(r.ticketNo||0)}</div></td>
-          <td>${new Date(r.horaIngreso).toLocaleString()}</td>
-          <td>${new Date(r.horaSalida).toLocaleString()}</td>
-          <td>${minutos}</td>
-          <td>Q${Number(r.total||0).toFixed(2)}</td>`;
-        tbody.appendChild(tr);
-      });
-
-      resumen.textContent = `Total: Q${total.toFixed(2)} — ${ventas.length} ventas`;
-    }
-    document.getElementById('btnFiltrarVentas')?.addEventListener('click', renderVentas);
-
-    // ====== USUARIOS ======
-    function renderUsers(){
-      const ul=document.getElementById('usersList'); if(!ul) return; ul.innerHTML='';
-      users.forEach((u,idx)=>{
-        const li=document.createElement('li');
-        li.innerHTML=`<div><strong>${escapeHtml(u.name)}</strong><div class="muted">${escapeHtml(u.role)}</div></div>
-        <div><button class="btn" data-idx="${idx}" data-action="edit">✏️</button><button class="btn" data-idx="${idx}" data-action="del">🗑️</button></div>`;
-        ul.appendChild(li);
-      });
-    }
-
-    document.getElementById('btnAddUser')?.addEventListener('click',()=>{
-      const n=document.getElementById('u_name').value.trim();
-      const r=document.getElementById('u_role').value.trim();
-      if(!n||!r) return alert('Nombre y rol');
-      users.push({id:uid('u'),name:n,role:r});
-      document.getElementById('u_name').value='';
-      document.getElementById('u_role').value='';
-      save(); renderUsers();
-    });
-
-    document.getElementById('usersList')?.addEventListener('click',(e)=>{
-      const b=e.target.closest('button'); if(!b) return;
-      const idx=Number(b.dataset.idx);
-      const action=b.dataset.action;
-      if(action==='del'){
-        if(!pedirClaveBorrado()) return;
-        if(confirm('Eliminar usuario?')){
-          users.splice(idx,1); save(); renderUsers();
-        }
-      }
-      if(action==='edit'){
-        const u=users[idx];
-        const name=prompt('Editar nombre',u.name);
-        const role=prompt('Editar rol',u.role);
-        if(name&&role){
-          users[idx].name=name; users[idx].role=role; save(); renderUsers();
-        }
-      }
-    });
-
-    // ====== BACKUP JSON ======
-    document.getElementById('exportJSON')?.addEventListener('click',()=>{
-      const blob=new Blob([JSON.stringify(registros,null,2)],{type:'application/json'});
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
-      a.download='parqueo_backup_'+(new Date()).toISOString().slice(0,10)+'.json';
-      a.click();
-    });
-
-    document.getElementById('importJSONBtn')?.addEventListener('click',()=>document.getElementById('fileImport').click());
-    document.getElementById('fileImport')?.addEventListener('change',(e)=>{
-      const f=e.target.files[0]; if(!f) return;
-      const r=new FileReader();
-      r.onload=()=>{
-        try{
-          const data=JSON.parse(r.result);
-          if(!Array.isArray(data)) return alert('Archivo inválido');
-          if(confirm('Reemplazar registros actuales? (Aceptar = reemplazar)')) registros=data;
-          else registros=registros.concat(data);
-          save(); actualizarTabla(); alert('Importado');
-        }catch(err){alert('Error al leer archivo');}
-      };
-      r.readAsText(f);
-    });
-
-    // ====== EXPORT EXCEL ======
-    document.getElementById('btnExportXLS')?.addEventListener('click', exportXLSX);
-    document.getElementById('iconExportXLS')?.addEventListener('click', exportXLSX);
-    document.getElementById('btnExportVisualXLS')?.addEventListener('click', exportVisualXLS);
-
-    document.getElementById('iconPrint')?.addEventListener('click',()=>document.getElementById('btnPrintSummary').click());
-
-    document.getElementById('btnPrintSummary')?.addEventListener('click', ()=>{
-      const total=registros.reduce((s,r)=>s+(r.total||0),0);
-      const w=window.open('','_blank');
-      if(!w){alert('Permite popups.');return}
-      w.document.write(`<html><head><meta charset="utf-8"><style>@page{size:55mm auto;margin:0}body{font-family:monospace;text-align:center;padding:10px}</style></head>
-      <body><img src="${TICKET_IMG}" style="max-width:220px;height:auto"/><div style="border-top:1px dashed #000;margin:10px 0"></div>
-      <h2 style="margin:0">RESUMEN</h2><pre>TOTAL: Q${total.toFixed(2)}</pre></body></html>`);
-      w.document.close();
-      setTimeout(()=>w.print(),350);
-    });
-
-    document.getElementById('btnClearAll')?.addEventListener('click',()=>{
-      if(!pedirClaveBorrado()) return;
-      if(!confirm('Borrar todos los registros?')) return;
-      registros=[]; save(); actualizarTabla();
-    });
-    document.getElementById('iconClear')?.addEventListener('click',()=>document.getElementById('btnClearAll').click());
-
-    // Buscar
-    document.getElementById('search').addEventListener('input',function(){
-      const q=this.value.trim().toLowerCase();
-      const tbody=document.getElementById('registro');
-      Array.from(tbody.children).forEach(tr=>{
-        const tipo=(tr.children[0]?.innerText||'').toLowerCase();
-        const placa=(tr.children[1]?.innerText||'').toLowerCase();
-        const marca=(tr.children[2]?.innerText||'').toLowerCase();
-        const color=(tr.children[3]?.innerText||'').toLowerCase();
-        const codigo=(tr.children[4]?.innerText||'').toLowerCase();
-        tr.style.display=(tipo.includes(q)||placa.includes(q)||marca.includes(q)||color.includes(q)||codigo.includes(q))?'':'none';
-      });
-    });
-
-    // Menú
-    document.getElementById('menu').addEventListener('click',(e)=>{
-      const b=e.target.closest('button'); if(!b) return;
-      document.querySelectorAll('#menu button').forEach(x=>x.classList.remove('active'));
-      b.classList.add('active');
-      const view=b.dataset.view;
-      document.querySelectorAll('.view').forEach(v=>v.style.display=(v.id==='view-'+view)?'':'none');
-      if(view==='ventas') renderVentas();
-      if(view==='cierres') actualizarComparativaCaja();
-    });
-
-    document.getElementById('btnResetTarifas')?.addEventListener('click',()=>{
-      if(confirm('Tarifas según aviso oficial. (No modifica registros)')) alert('Tarifas activas: según aviso.');
-    });
-
-    // Enter: placa->marca->color->ingresar
-    document.getElementById('placa').addEventListener('keyup',(e)=>{ if(e.key==='Enter') document.getElementById('marca').focus()});
-    document.getElementById('marca').addEventListener('keyup',(e)=>{ if(e.key==='Enter') document.getElementById('color').focus()});
-    document.getElementById('color').addEventListener('keyup',(e)=>{ if(e.key==='Enter') document.getElementById('btnIngresar').click()});
-
-    // ====== CIERRES ======
-    function numQ(v){
-      const x = String(v||'').replace(/,/g,'.').replace(/[^\d.-]/g,'');
-      const n = Number(x);
-      return isNaN(n) ? 0 : n;
-    }
-
-    function calcularTotalSistemaCobrados(){
-      return registros.filter(r=>r.horaSalida && r.total!=null).reduce((s,r)=>s+(Number(r.total)||0),0);
-    }
-    function calcularCantidadVentasCobradas(){
-      return registros.filter(r=>r.horaSalida && r.total!=null).length;
-    }
-
-    function actualizarComparativaCaja(){
-      const totalSistema = calcularTotalSistemaCobrados();
-      const ef = numQ(document.getElementById('p_efectivo')?.value);
-      const ta = numQ(document.getElementById('p_tarjeta')?.value);
-      const tr = numQ(document.getElementById('p_transferencia')?.value);
-      const ot = numQ(document.getElementById('p_otros')?.value);
-      const recibido = ef+ta+tr+ot;
-      const dif = recibido - totalSistema;
-      const el = document.getElementById('cajaComparativa');
-      if(el){
-        el.textContent = `Sistema: Q${totalSistema.toFixed(2)} • Recibido: Q${recibido.toFixed(2)} • Dif: Q${dif.toFixed(2)}`;
-      }
-    }
-
-    ['p_efectivo','p_tarjeta','p_transferencia','p_otros'].forEach(id=>{
-      document.getElementById(id)?.addEventListener('input', actualizarComparativaCaja);
-    });
-
-    document.getElementById('btnGenerarCierre')?.addEventListener('click', ()=> {
-      const ventas = registros.filter(r=>r.horaSalida && r.total!=null);
-      if (ventas.length === 0) return alert('No hay ventas cobradas para cerrar.');
-
-      const totalSistema = calcularTotalSistemaCobrados();
-
-      const pagos = {
-        efectivo: numQ(document.getElementById('p_efectivo')?.value),
-        tarjeta: numQ(document.getElementById('p_tarjeta')?.value),
-        transferencia: numQ(document.getElementById('p_transferencia')?.value),
-        otros: numQ(document.getElementById('p_otros')?.value)
-      };
-      const totalRecibido = pagos.efectivo + pagos.tarjeta + pagos.transferencia + pagos.otros;
-      const diferencia = totalRecibido - totalSistema;
-
+    function generarCierre(){
+      const totalSistema = registros.filter(r => r.horaSalida).reduce((s,r) => s + Number(r.total || 0), 0);
       const cierre = {
-        id: uid('c'),
+        no: getNextCierreNo(),
         fecha: new Date().toLocaleString(),
-        cantidadVentas: ventas.length,
-        totalSistema: Number(totalSistema.toFixed(2)),
-        pagos,
-        totalRecibido: Number(totalRecibido.toFixed(2)),
-        diferencia: Number(diferencia.toFixed(2)),
-        detalles: ventas.map(v=>({...v}))
-      };
-
-      if(!confirm(`Generar cierre?\n\nVentas: ${cierre.cantidadVentas}\nTotal sistema: Q${cierre.totalSistema.toFixed(2)}\nTotal recibido: Q${cierre.totalRecibido.toFixed(2)}\nDiferencia: Q${cierre.diferencia.toFixed(2)}`)) return;
-
-      cierres.push(cierre);
-
-      // Mantener tickets abiertos (sin salida) y limpiar solo ventas cobradas
-      registros = registros.filter(r=>!r.horaSalida);
-
-      // Limpiar inputs de caja
-      ['p_efectivo','p_tarjeta','p_transferencia','p_otros'].forEach(id=>{
-        const el = document.getElementById(id); if(el) el.value='';
-      });
-
-      save();
-      actualizarTabla();
-      imprimirCierreTicket(cierre);
-      alert(`Cierre generado. Total sistema Q${cierre.totalSistema.toFixed(2)}`);
-    });
-
-    function renderCierresTable(){
-      const tbody = document.getElementById('cierresTable'); if(!tbody) return;
-      tbody.innerHTML = '';
-      cierres.forEach((c,i)=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${i+1}</td><td>${escapeHtml(c.fecha||'')}</td><td>${c.cantidadVentas||0}</td><td>Q${Number(c.totalSistema||0).toFixed(2)}</td>
-        <td><button class="btn" data-idx="${i}" data-action="view">Ver</button> <button class="btn" data-idx="${i}" data-action="del">Eliminar</button> <button class="btn" data-idx="${i}" data-action="print">Imprimir</button></td>`;
-        tbody.appendChild(tr);
-      });
-    }
-
-    document.getElementById('cierresTable')?.addEventListener('click',(e)=>{
-      const b=e.target.closest('button'); if(!b) return;
-      const idx=Number(b.dataset.idx);
-      const action=b.dataset.action;
-
-      if(action==='view'){
-        const c=cierres[idx];
-        alert(`Fecha: ${c.fecha}\nVentas: ${c.cantidadVentas}\nTotal sistema: Q${Number(c.totalSistema||0).toFixed(2)}\nRecibido: Q${Number(c.totalRecibido||0).toFixed(2)}\nDiferencia: Q${Number(c.diferencia||0).toFixed(2)}`);
-      }
-
-      if(action==='print'){
-        const c=cierres[idx];
-        imprimirCierreTicket(c);
-      }
-
-      if(action==='del'){
-        if(!pedirClaveBorrado()) return;
-        if(confirm('Eliminar cierre?')){
-          cierres.splice(idx,1);
-          save();
-          renderCierresTable();
+        cantidad: registros.filter(r => r.horaSalida).length,
+        totalSistema,
+        pagos: {
+          efectivo: getNum(document.getElementById('p_efectivo').value),
+          tarjeta: getNum(document.getElementById('p_tarjeta').value),
+          transferencia: getNum(document.getElementById('p_transferencia').value),
+          otros: getNum(document.getElementById('p_otros').value)
         }
-      }
-    });
-
-    // Export cierres a .xlsx
-    document.getElementById('btnExportCierresXLS')?.addEventListener('click', ()=>{
-      try{
-        const wb = XLSX.utils.book_new();
-        const ws_data = [['#','Fecha','Ventas','Total Sistema','Efectivo','Tarjeta','Transferencia','Otros','Total Recibido','Diferencia']];
-        cierres.forEach((c,i)=>{
-          const p = c.pagos || {};
-          ws_data.push([
-            i+1,
-            c.fecha||'',
-            c.cantidadVentas||0,
-            Number(c.totalSistema||0).toFixed(2),
-            Number(p.efectivo||0).toFixed(2),
-            Number(p.tarjeta||0).toFixed(2),
-            Number(p.transferencia||0).toFixed(2),
-            Number(p.otros||0).toFixed(2),
-            Number(c.totalRecibido||0).toFixed(2),
-            Number(c.diferencia||0).toFixed(2)
-          ]);
-        });
-        const ws = XLSX.utils.aoa_to_sheet(ws_data);
-        XLSX.utils.book_append_sheet(wb, ws, 'Cierres');
-        XLSX.writeFile(wb, 'Parqueo El Centro_cierres_'+(new Date()).toISOString().slice(0,10)+'.xlsx');
-      }catch(e){console.error(e);alert('Error exportando cierres');}
-    });
-
-    // Export .xlsx registros
-    function exportXLSX(){
-      try {
-        const wb = XLSX.utils.book_new();
-        const title = 'Parqueo El Centro- Registros';
-        const fecha = new Date().toLocaleString();
-        const ws_data = [['Tipo','Placa','Marca','Color','Código','Ingreso','Salida','Minutos','Total Q']];
-
-        registros.forEach(r=>{
-          const minutos = r.horaSalida ? Math.ceil((new Date(r.horaSalida)-new Date(r.horaIngreso))/60000) : '';
-          ws_data.push([
-            tipoLabel(r.tipo || 'CARRO'),
-            r.placa,
-            r.marca,
-            r.color||'',
-            r.codigo || '',
-            new Date(r.horaIngreso).toLocaleString(),
-            r.horaSalida?new Date(r.horaSalida).toLocaleString():'',
-            minutos,
-            r.total!=null?Number(r.total).toFixed(2):''
-          ]);
-        });
-
-        const ws = XLSX.utils.aoa_to_sheet(ws_data);
-        XLSX.utils.book_append_sheet(wb, ws, 'Registros');
-
-        const resumen = [
-          ['Reporte', title],
-          ['Fecha', fecha],
-          ['Total registros', registros.length],
-          ['Total recaudado', registros.reduce((s,r)=>s+(r.total||0),0)]
-        ];
-        const ws2 = XLSX.utils.aoa_to_sheet(resumen);
-        XLSX.utils.book_append_sheet(wb, ws2, 'Resumen');
-
-        XLSX.writeFile(wb, 'Parqueo El Centro_registros_'+(new Date()).toISOString().slice(0,10)+'.xlsx');
-      } catch(err){ console.error(err); alert('Error creando .xlsx'); }
+      };
+      cierre.totalRecibido = cierre.pagos.efectivo + cierre.pagos.tarjeta + cierre.pagos.transferencia + cierre.pagos.otros;
+      cierre.diferencia = cierre.totalRecibido - cierre.totalSistema;
+      cierres.push(cierre);
+      saveAll();
+      printCierre(cierre);
+      ['p_efectivo','p_tarjeta','p_transferencia','p_otros'].forEach(id => document.getElementById(id).value = '');
+      updateCajaComparativa();
+      renderCierres();
     }
 
-    // Export visual (.xls) con logo embebido
-    function exportVisualXLS(){
-      fetch('IMAGEN1.png').then(r=>r.blob()).then(blob=>{
-        const fr = new FileReader();
-        fr.onloadend = () => {
-          const imgData = fr.result;
-          const title = 'Parqueo El Centro- Reporte';
-          const fecha = new Date().toLocaleString();
-
-          const header = `
-            <table>
-              <tr><td colspan="9" style="text-align:left"><img src="${imgData}" style="max-height:80px"/></td></tr>
-              <tr><td colspan="9" style="font-weight:700;font-size:16pt">${title}</td></tr>
-              <tr><td colspan="9">Fecha: ${fecha}</td></tr>
-            </table><br/>`;
-
-          const cols=['Tipo','Placa','Marca','Color','Código','Ingreso','Salida','Minutos','Total Q'];
-          const rows = registros.map(r=>{
-            const minutos=r.horaSalida?Math.ceil((new Date(r.horaSalida)-new Date(r.horaIngreso))/60000):'';
-            return [
-              escapeHtml(tipoLabel(r.tipo || 'CARRO')),
-              escapeHtml(r.placa),
-              escapeHtml(r.marca),
-              escapeHtml(r.color||''),
-              escapeHtml(r.codigo || ''),
-              new Date(r.horaIngreso).toLocaleString(),
-              r.horaSalida?new Date(r.horaSalida).toLocaleString():'',
-              minutos,
-              r.total!=null?Number(r.total).toFixed(2):''
-            ];
-          });
-
-          let table = '<table border="1" style="border-collapse:collapse"><thead><tr>'+
-            cols.map(c=>`<th style="background:#f2f2f2;padding:6px 8px">${c}</th>`).join('')+
-            '</tr></thead><tbody>';
-
-          rows.forEach(rw=>{
-            table+='<tr>'+rw.map(c=>`<td style="padding:6px 8px">${c}</td>`).join('')+'</tr>';
-          });
-          table+='</tbody></table>';
-
-          const html = '<!doctype html><html><head><meta charset="utf-8"><title>'+title+'</title></head><body>'+header+table+'</body></html>';
-          const blobFile = new Blob([html],{type:'application/vnd.ms-excel'});
-          const a=document.createElement('a');
-          a.href=URL.createObjectURL(blobFile);
-          a.download='parqueo_Parqueo El Centro_visual_'+(new Date()).toISOString().slice(0,10)+'.xls';
-          a.click();
+    function exportXlsx(){
+      const rows = registros.map(r => {
+        const minutos = r.horaSalida ? calcularPago(r.horaIngreso, r.horaSalida, r.tipo).minutos : '';
+        return {
+          Ticket: r.ticketNo,
+          Tipo: tipoLabel(r.tipo),
+          Placa: r.placa,
+          Marca: r.marca,
+          Color: r.color,
+          Codigo: r.codigo,
+          Ingreso: dt(r.horaIngreso),
+          Salida: r.horaSalida ? dt(r.horaSalida) : '',
+          Minutos: minutos,
+          Total: Number(r.total || 0)
         };
-        fr.readAsDataURL(blob);
-      }).catch(err=>{ alert('No se pudo leer IMAGEN1.png para el Excel visual'); console.error(err); });
+      });
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, 'Registros');
+      XLSX.writeFile(wb, 'Parqueo_El_Centro_Registros.xlsx');
     }
 
-    // Init
-    function init(){
-      actualizarTabla();
-      document.querySelector('#menu button[data-view="dashboard"]').click();
-      renderCierresTable();
-      actualizarComparativaCaja();
-      document.getElementById('search').focus();  // ← AQUÍ
+    function reprintIngreso(id){
+      const rec = registros.find(r => r.id === id);
+      if(rec) printIngreso(rec);
     }
-    init();
+    function reprintSalida(id){
+      const rec = registros.find(r => r.id === id && r.horaSalida);
+      if(rec) printSalida(rec);
+    }
+    function reprintCierre(i){ if(cierres[i]) printCierre(cierres[i]); }
+    window.reprintIngreso = reprintIngreso;
+    window.reprintSalida = reprintSalida;
+    window.reprintCierre = reprintCierre;
+    window.openCobroWithCode = openCobroWithCode;
 
-    window.PM={get registros(){return registros}, get users(){return users}, get cierres(){return cierres}, save, calcularPago, TARIFAS};
+    function renderAll(){
+      renderStats();
+      renderActivos();
+      renderHistorial();
+      renderVentas();
+      renderUsers();
+      renderCierres();
+      updateCajaComparativa();
+    }
+
+    function login(){
+      const user = document.getElementById('loginUser').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+      const ok = user === 'admin' && pass === '123';
+      document.getElementById('loginError').classList.toggle('hidden', ok);
+      if(!ok) return;
+      localStorage.setItem(SESSION_KEY, '1');
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      renderAll();
+    }
+    function logout(){
+      localStorage.removeItem(SESSION_KEY);
+      document.getElementById('app').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('loginPass').value = '';
+      closeDrawer();
+    }
+
+    document.getElementById('btnLogin').addEventListener('click', login);
+    document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
+    document.getElementById('btnMenu').addEventListener('click', openDrawer);
+    document.getElementById('drawerBackdrop').addEventListener('click', closeDrawer);
+    document.getElementById('btnLogout').addEventListener('click', logout);
+    document.querySelectorAll('.menu-item[data-view]').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+
+    document.getElementById('btnIngresar').addEventListener('click', addIngreso);
+    document.getElementById('btnOpenCobro').addEventListener('click', openCobro);
+    document.getElementById('btnQuickCobro').addEventListener('click', openCobro);
+    document.getElementById('btnQuickActivos').addEventListener('click', () => setView('activos'));
+    document.getElementById('btnQuickHistorial').addEventListener('click', () => setView('historial'));
+    document.getElementById('btnQuickCierre').addEventListener('click', () => setView('cierres'));
+
+    document.getElementById('btnCerrarCobro').addEventListener('click', closeCobro);
+    document.getElementById('btnBuscarCobro').addEventListener('click', buscarCobro);
+    document.getElementById('btnLimpiarCobro').addEventListener('click', clearCobro);
+    document.getElementById('btnConfirmarCobro').addEventListener('click', confirmarCobro);
+    document.getElementById('cobroCodigo').addEventListener('keydown', e => { if(e.key === 'Enter') buscarCobro(); });
+
+    document.getElementById('searchHistory').addEventListener('input', renderHistorial);
+    document.getElementById('ventasDesde').value = todayISO();
+    document.getElementById('ventasHasta').value = todayISO();
+    document.getElementById('btnFiltrarVentas').addEventListener('click', renderVentas);
+    document.getElementById('btnAddUser').addEventListener('click', addUser);
+    document.getElementById('btnGenerarCierre').addEventListener('click', generarCierre);
+    ['p_efectivo','p_tarjeta','p_transferencia','p_otros'].forEach(id => document.getElementById(id).addEventListener('input', updateCajaComparativa));
+    document.getElementById('btnExportXlsx').addEventListener('click', exportXlsx);
+
+    if(localStorage.getItem(SESSION_KEY) === '1'){
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      renderAll();
+    }
   </script>
 </body>
 </html>
