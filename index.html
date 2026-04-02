@@ -1,446 +1,1197 @@
-<!-- LICENCIA MOVIL -->
-<div id="licenseOverlay" class="license-overlay">
-  <div class="license-card">
-    <div class="license-top"></div>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <title>Parqueo El Centro</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <style>
+    :root{
+      --bg:#07111f;
+      --panel:#0d1b2a;
+      --panel-2:#10243a;
+      --card:#13273d;
+      --line:rgba(255,255,255,.08);
+      --text:#eff6fb;
+      --muted:#97a8b8;
+      --accent:#22c55e;
+      --accent-2:#38bdf8;
+      --danger:#ef4444;
+      --warn:#f59e0b;
+      --shadow:0 12px 30px rgba(0,0,0,.28);
+      --radius:18px;
+      --safe-top:env(safe-area-inset-top,0px);
+      --safe-bottom:env(safe-area-inset-bottom,0px);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;height:100%;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(180deg,#06101b,#0d1b2a 52%,#0b1522);color:var(--text)}
+    button,input,select{font:inherit}
+    input,select{width:100%;min-width:0;background:#0b1725;color:var(--text);border:1px solid var(--line);border-radius:16px;padding:14px 14px;outline:none}
+    input::placeholder{color:#7f94a8}
+    button{border:none;cursor:pointer}
+    .hidden{display:none !important}
 
-    <div class="license-header">
-      <img src="LOGO1.png" alt="LOGO" class="license-logo" onerror="this.style.display='none'">
-      <div class="license-brand-wrap">
-        <div class="license-brand">Marck Business</div>
-        <div class="license-subbrand">Protección de licencia móvil</div>
+    .login-screen{
+      min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px;
+      background:radial-gradient(circle at top,#123657 0%,#08121d 55%,#050a11 100%);
+    }
+    .login-card{
+      width:min(100%,420px);background:rgba(13,27,42,.96);border:1px solid var(--line);border-radius:28px;
+      padding:22px;box-shadow:var(--shadow)
+    }
+    .brand-badge{width:74px;height:74px;border-radius:22px;background:linear-gradient(135deg,var(--accent),#16a34a);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;color:#06240f;box-shadow:0 10px 24px rgba(34,197,94,.24)}
+    .title{font-size:28px;font-weight:900;line-height:1.05;margin:14px 0 6px}
+    .subtitle{color:var(--muted);font-size:14px;line-height:1.45}
+    .field{margin-top:14px}
+    .btn{width:100%;border-radius:18px;padding:15px 16px;font-weight:800}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),#16a34a);color:#06240f}
+    .btn-secondary{background:#0b1725;color:var(--text);border:1px solid var(--line)}
+    .btn-danger{background:linear-gradient(135deg,#fb7185,var(--danger));color:#fff}
+    .error{margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(239,68,68,.12);color:#fecaca;border:1px solid rgba(239,68,68,.25);font-size:14px}
+
+    .app{min-height:100dvh;display:flex;flex-direction:column}
+    .topbar{position:sticky;top:0;z-index:30;padding:calc(12px + var(--safe-top)) 14px 12px;background:rgba(6,16,27,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+    .icon-btn{width:48px;height:48px;border-radius:16px;background:#0b1725;color:var(--text);display:flex;align-items:center;justify-content:center;border:1px solid var(--line);font-size:22px;flex:0 0 auto}
+    .topbar-center{min-width:0;flex:1}
+    .topbar-title{font-size:19px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .topbar-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    .content{padding:14px 14px calc(18px + var(--safe-bottom));display:flex;flex-direction:column;gap:14px}
+    .card{background:rgba(16,36,58,.96);border:1px solid var(--line);border-radius:24px;padding:14px;box-shadow:var(--shadow)}
+    .section-title{font-size:18px;font-weight:900;margin:0 0 10px}
+    .muted{color:var(--muted)}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .stack{display:flex;flex-direction:column;gap:10px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .stat{background:#0b1725;border:1px solid var(--line);border-radius:20px;padding:14px;text-align:center}
+    .stat .num{font-size:24px;font-weight:900}
+    .stat .lbl{font-size:12px;color:var(--muted);margin-top:4px}
+    .pill{display:inline-flex;align-items:center;gap:8px;background:#0b1725;border:1px solid var(--line);color:var(--muted);padding:10px 12px;border-radius:999px;font-size:12px;font-weight:700}
+    .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .toolbar .btn{padding:14px 12px}
+    .toolbar-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+    .record-list{display:flex;flex-direction:column;gap:12px}
+    .record{
+      background:#0b1725;border:1px solid var(--line);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:12px;
+    }
+    .record-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+    .record-title{font-size:18px;font-weight:900;line-height:1.1}
+    .record-badge{padding:7px 10px;border-radius:999px;font-size:12px;font-weight:900;white-space:nowrap}
+    .badge-active{background:rgba(34,197,94,.14);color:#86efac;border:1px solid rgba(34,197,94,.25)}
+    .badge-closed{background:rgba(56,189,248,.14);color:#93c5fd;border:1px solid rgba(56,189,248,.25)}
+    .details{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .detail{background:rgba(255,255,255,.02);border-radius:16px;padding:10px}
+    .detail .k{font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+    .detail .v{font-weight:800;word-break:break-word}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .actions.single{grid-template-columns:1fr}
+
+    .drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40;opacity:0;pointer-events:none;transition:.24s}
+    .drawer{position:fixed;left:0;top:0;height:100dvh;width:min(84vw,340px);background:#0a1726;border-right:1px solid var(--line);z-index:50;transform:translateX(-100%);transition:.24s;display:flex;flex-direction:column;padding:calc(14px + var(--safe-top)) 14px calc(18px + var(--safe-bottom));gap:14px}
+    .drawer.open{transform:none}
+    .drawer-backdrop.open{opacity:1;pointer-events:auto}
+    .menu-list{display:flex;flex-direction:column;gap:10px}
+    .menu-item{width:100%;text-align:left;background:#0f2032;border:1px solid var(--line);color:var(--text);padding:15px 16px;border-radius:18px;font-weight:800}
+    .menu-item.active{background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(56,189,248,.14));border-color:rgba(34,197,94,.3)}
+
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.58);z-index:80;display:none;align-items:flex-end}
+    .modal-backdrop.show{display:flex}
+    .sheet{width:100%;background:#081523;border-top-left-radius:28px;border-top-right-radius:28px;border:1px solid var(--line);padding:16px 14px calc(18px + var(--safe-bottom));max-height:92dvh;overflow:auto;box-shadow:0 -12px 30px rgba(0,0,0,.35)}
+    .sheet-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+    .sheet-title{font-size:20px;font-weight:900}
+
+    .empty{padding:18px;border:1px dashed var(--line);border-radius:20px;text-align:center;color:var(--muted);background:rgba(255,255,255,.02)}
+
+    .search-box{display:flex;gap:10px}
+    .search-box input{flex:1}
+
+    @media (min-width: 760px){
+      .content{width:min(100%,900px);margin:0 auto}
+      .toolbar{grid-template-columns:repeat(4,1fr)}
+      .actions{grid-template-columns:repeat(4,1fr)}
+      .grid-2{grid-template-columns:repeat(2,1fr)}
+    }
+
+    /* licencia */
+    .license-overlay{
+      position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;
+      padding:calc(var(--safe-top) + 14px) 14px calc(var(--safe-bottom) + 14px);
+      background:
+        radial-gradient(circle at top, rgba(56,189,248,.16), transparent 30%),
+        radial-gradient(circle at bottom, rgba(34,197,94,.10), transparent 30%),
+        linear-gradient(180deg, #06101b 0%, #081523 48%, #050b12 100%);
+      overflow:auto
+    }
+    .license-card{
+      width:100%;max-width:420px;border-radius:28px;
+      background:linear-gradient(180deg, rgba(13,27,42,.98), rgba(8,21,35,.98));
+      border:1px solid rgba(255,255,255,.08);box-shadow:0 24px 70px rgba(0,0,0,.45);
+      padding:18px;position:relative;overflow:hidden
+    }
+    .license-top{
+      position:absolute;top:-80px;right:-80px;width:180px;height:180px;border-radius:50%;
+      background:radial-gradient(circle, rgba(56,189,248,.20), transparent 72%);pointer-events:none
+    }
+    .license-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    .license-logo{
+      width:62px;height:62px;object-fit:contain;border-radius:16px;padding:6px;background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);flex:0 0 auto
+    }
+    .license-brand-wrap{min-width:0}
+    .license-brand{color:#ffffff;font-size:20px;font-weight:900;line-height:1.05;word-break:break-word}
+    .license-subbrand{color:#92a7bc;font-size:12px;margin-top:4px;line-height:1.3}
+    .license-chip{
+      display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:8px 12px;border-radius:999px;
+      background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.24);color:#fbbf24;font-size:11px;font-weight:900;
+      letter-spacing:.5px;margin-bottom:14px
+    }
+    .license-title{margin:0 0 10px;color:#fff;font-size:30px;line-height:1.05;font-weight:900}
+    .license-text{margin:0;color:#bfd0e2;font-size:14px;line-height:1.55}
+    .license-info-box{
+      margin-top:16px;padding:14px;border-radius:20px;background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.07)
+    }
+    .license-label{color:#8ea2b7;font-size:11px;font-weight:900;letter-spacing:.7px;margin-bottom:8px}
+    .license-device-id{
+      color:#e5eef7;font-size:13px;line-height:1.5;font-weight:800;font-family:Consolas, monospace;word-break:break-word
+    }
+    .license-input{
+      width:100%;margin-top:12px;background:#0b1725;color:var(--text);border:1px solid var(--line);
+      border-radius:16px;padding:14px 14px;outline:none
+    }
+    .license-buttons{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
+    .license-btn{
+      width:100%;min-height:54px;border:none;border-radius:18px;padding:14px 16px;font-size:15px;font-weight:900;cursor:pointer;transition:.2s ease
+    }
+    .license-btn:active{transform:scale(.985)}
+    .license-btn.primary{background:linear-gradient(135deg, #22c55e, #16a34a);color:#052e16;box-shadow:0 12px 28px rgba(34,197,94,.22)}
+    .license-btn.secondary{background:#0b1725;color:#edf5fb;border:1px solid rgba(255,255,255,.08)}
+    .license-btn.ghost{background:rgba(255,255,255,.04);color:#d9e6f3;border:1px solid rgba(255,255,255,.08)}
+    .license-mini-note{text-align:center;color:#7f95aa;font-size:12px;margin-top:14px;line-height:1.4}
+    .license-inline-error{
+      margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(239,68,68,.12);color:#fecaca;border:1px solid rgba(239,68,68,.25);font-size:13px
+    }
+    .mb-alert{
+      position:fixed;top:calc(var(--safe-top) + 10px);left:10px;right:10px;z-index:1000000
+    }
+    .mb-alert-card{
+      display:flex;align-items:flex-start;gap:12px;background:rgba(10,20,34,.98);border:1px solid rgba(255,255,255,.08);
+      border-radius:20px;padding:14px;box-shadow:0 18px 45px rgba(0,0,0,.35);animation:mbAlertIn .22s ease
+    }
+    @keyframes mbAlertIn{from{opacity:0;transform:translateY(-10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .mb-alert-icon{
+      width:40px;height:40px;min-width:40px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+      font-size:18px;font-weight:900;background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.22)
+    }
+    .mb-alert-body{flex:1;min-width:0}
+    .mb-alert-title{color:#fff;font-size:14px;font-weight:900;margin-bottom:4px;line-height:1.3}
+    .mb-alert-message{color:#c1d2e3;font-size:13px;line-height:1.5;word-break:break-word}
+    .mb-alert-close{border:none;background:transparent;color:#9bb0c5;font-size:18px;cursor:pointer;padding:0 2px;min-width:28px;min-height:28px}
+
+  </style>
+</head>
+<body>
+  <section id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="brand-badge">PE</div>
+      <div class="title">Parqueo El Centro</div>
+      <div class="subtitle">Acceso administrativo del sistema móvil de cobro de parqueo.</div>
+      <div class="field"><input id="loginUser" type="text" placeholder="Usuario" value="admin" /></div>
+      <div class="field"><input id="loginPass" type="password" placeholder="Clave" /></div>
+      <div class="field"><button id="btnLogin" class="btn btn-primary">Ingresar</button></div>
+      <div id="loginError" class="error hidden">Usuario o clave incorrectos.</div>
+      <div class="subtitle" style="margin-top:14px">Usuario: <b>admin</b> &nbsp; Clave: <b>123</b></div>
+    </div>
+  </section>
+
+  <section id="app" class="app hidden">
+    <header class="topbar">
+      <button class="icon-btn" id="btnMenu">☰</button>
+      <div class="topbar-center">
+        <div class="topbar-title">Parqueo El Centro</div>
+        <div class="topbar-sub">2a. Avenida y 1a. Calle Zona 2, Salcajá</div>
+      </div>
+      <button class="icon-btn" id="btnOpenCobro">💳</button>
+    </header>
+
+    <div id="drawerBackdrop" class="drawer-backdrop"></div>
+    <aside id="drawer" class="drawer">
+      <div>
+        <div class="brand-badge" style="width:60px;height:60px;border-radius:18px;font-size:20px">PE</div>
+        <div style="margin-top:10px;font-size:22px;font-weight:900">Menú</div>
+        <div class="muted" style="margin-top:4px">Sistema móvil</div>
+      </div>
+      <nav id="menuList" class="menu-list">
+        <button class="menu-item active" data-view="dashboard">🏠 Inicio</button>
+        <button class="menu-item" data-view="activos">🚗 Activos</button>
+        <button class="menu-item" data-view="historial">📋 Historial</button>
+        <button class="menu-item" data-view="ventas">💰 Ventas</button>
+        <button class="menu-item" data-view="cierres">🧾 Cierres</button>
+        <button class="menu-item" data-view="usuarios">👥 Usuarios</button>
+        <button class="menu-item" data-view="info">ℹ️ Información</button>
+      </nav>
+      <div style="margin-top:auto" class="stack">
+        <button id="btnExportXlsx" class="btn btn-secondary">Exportar Excel</button>
+        <button id="btnLogout" class="btn btn-danger">Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="view" data-view="dashboard">
+        <div class="card">
+          <h2 class="section-title">Registrar ingreso</h2>
+          <div class="stack">
+            <select id="tipo">
+              <option value="CARRO">CARRO</option>
+              <option value="MOTO">MOTO</option>
+            </select>
+            <input id="placa" type="text" placeholder="Placa" />
+            <input id="marca" type="text" placeholder="Marca" />
+            <input id="color" type="text" placeholder="Color" />
+            <button id="btnIngresar" class="btn btn-primary">Registrar e imprimir ticket</button>
+          </div>
+          <div style="margin-top:12px" class="pill">Ticket 55mm • numerado • uso móvil</div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div id="statActivos" class="num">0</div><div class="lbl">Activos</div></div>
+          <div class="stat"><div id="statVentas" class="num">Q0</div><div class="lbl">Cobrado</div></div>
+          <div class="stat"><div id="statHoy" class="num">0</div><div class="lbl">Ingresos hoy</div></div>
+        </div>
+
+        <div class="card">
+          <h2 class="section-title">Acciones rápidas</h2>
+          <div class="toolbar">
+            <button class="btn btn-secondary" id="btnQuickCobro">Cobrar salida</button>
+            <button class="btn btn-secondary" id="btnQuickActivos">Ver activos</button>
+            <button class="btn btn-secondary" id="btnQuickHistorial">Ver historial</button>
+            <button class="btn btn-secondary" id="btnQuickCierre">Generar cierre</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="view hidden" data-view="activos">
+        <div class="card">
+          <div class="sheet-head" style="margin-bottom:10px">
+            <div>
+              <div class="sheet-title">Vehículos activos</div>
+              <div class="muted">Solo los que aún no han salido</div>
+            </div>
+          </div>
+          <div id="activosList" class="record-list"></div>
+        </div>
+      </section>
+
+      <section class="view hidden" data-view="historial">
+        <div class="card">
+          <div class="sheet-head" style="margin-bottom:10px">
+            <div>
+              <div class="sheet-title">Historial completo</div>
+              <div class="muted">Entradas y salidas registradas</div>
+            </div>
+          </div>
+          <div class="search-box" style="margin-bottom:10px">
+            <input id="searchHistory" type="search" placeholder="Buscar placa, marca, color o código" />
+          </div>
+          <div id="historialList" class="record-list"></div>
+        </div>
+      </section>
+
+      <section class="view hidden" data-view="ventas">
+        <div class="card">
+          <div class="sheet-head" style="margin-bottom:10px">
+            <div>
+              <div class="sheet-title">Ventas</div>
+              <div class="muted">Filtra por fecha</div>
+            </div>
+          </div>
+          <div class="stack">
+            <input id="ventasDesde" type="date" />
+            <input id="ventasHasta" type="date" />
+            <button id="btnFiltrarVentas" class="btn btn-primary">Aplicar filtro</button>
+          </div>
+          <div id="ventasResumen" style="margin-top:12px" class="pill">Total: Q0.00 • 0 ventas</div>
+          <div id="ventasList" class="record-list" style="margin-top:12px"></div>
+        </div>
+      </section>
+
+      <section class="view hidden" data-view="cierres">
+        <div class="card stack">
+          <div>
+            <div class="sheet-title">Cierre de caja</div>
+            <div class="muted">Compara lo recibido con el total del sistema</div>
+          </div>
+          <input id="p_efectivo" type="text" placeholder="Efectivo Q" />
+          <input id="p_tarjeta" type="text" placeholder="Tarjeta Q" />
+          <input id="p_transferencia" type="text" placeholder="Transferencia Q" />
+          <input id="p_otros" type="text" placeholder="Otros Q" />
+          <div id="cajaComparativa" class="pill">Sistema: Q0.00 • Recibido: Q0.00 • Dif: Q0.00</div>
+          <button id="btnGenerarCierre" class="btn btn-primary">Generar cierre</button>
+        </div>
+        <div class="card">
+          <div class="sheet-title" style="margin-bottom:10px">Historial de cierres</div>
+          <div id="cierresList" class="record-list"></div>
+        </div>
+      </section>
+
+      <section class="view hidden" data-view="usuarios">
+        <div class="card stack">
+          <div>
+            <div class="sheet-title">Usuarios</div>
+            <div class="muted">Registro simple local</div>
+          </div>
+          <input id="u_name" type="text" placeholder="Nombre" />
+          <input id="u_role" type="text" placeholder="Rol" />
+          <button id="btnAddUser" class="btn btn-primary">Agregar usuario</button>
+          <div id="usersList" class="record-list"></div>
+        </div>
+      </section>
+
+      <section class="view hidden" data-view="info">
+        <div class="card stack">
+          <div class="sheet-title">Información</div>
+          <div class="detail"><div class="k">Negocio</div><div class="v">Parqueo El Centro</div></div>
+          <div class="detail"><div class="k">Dirección</div><div class="v">2a. Avenida y 1a. Calle Zona 2, Salcajá</div></div>
+          <div class="detail"><div class="k">Tarifa carro</div><div class="v">0 a 30 min = Q10 • 31 a 60 min = Q15 • luego +Q5 por cada fracción adicional de 30 min</div></div>
+          <div class="detail"><div class="k">Tarifa moto</div><div class="v">Q5 la hora o fracción</div></div>
+          <div class="detail"><div class="k">Login</div><div class="v">admin / 123</div></div>
+        </div>
+      </section>
+    </main>
+  </section>
+
+
+  <div id="licenseOverlay" class="license-overlay hidden">
+    <div class="license-card">
+      <div class="license-top"></div>
+      <div class="license-header">
+        <img src="LOGO1.png" alt="LOGO" class="license-logo" onerror="this.style.display='none'">
+        <div class="license-brand-wrap">
+          <div class="license-brand">Marck Business</div>
+          <div class="license-subbrand">Protección de licencia móvil</div>
+        </div>
+      </div>
+      <div class="license-chip">ESTADO DEL SISTEMA</div>
+      <h1 class="license-title">Licencia pendiente de activación</h1>
+      <p class="license-text">
+        Este dispositivo todavía no cuenta con una licencia activa. Ingresa el código de activación o solicítalo por WhatsApp.
+      </p>
+      <div class="license-info-box">
+        <div class="license-label">ID DEL DISPOSITIVO</div>
+        <div id="deviceIdText" class="license-device-id">CARGANDO...</div>
+        <input id="licenseCodeInput" class="license-input" type="text" placeholder="Ingresa el código de licencia" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      </div>
+      <div class="license-buttons">
+        <button type="button" class="license-btn primary" id="btnValidateLicense">Activar con código</button>
+        <button type="button" class="license-btn secondary" id="btnLicenseWhatsApp">Solicitar por WhatsApp</button>
+        <button type="button" class="license-btn ghost" id="btnCopyDeviceId">Copiar ID</button>
+      </div>
+      <div id="licenseInlineError" class="license-inline-error hidden">Código de licencia inválido para este dispositivo.</div>
+      <div class="license-mini-note">Activación única por dispositivo</div>
+    </div>
+  </div>
+
+  <div id="mbAlert" class="mb-alert hidden">
+    <div class="mb-alert-card">
+      <div id="mbAlertIcon" class="mb-alert-icon">!</div>
+      <div class="mb-alert-body">
+        <div id="mbAlertTitle" class="mb-alert-title">Aviso</div>
+        <div id="mbAlertMessage" class="mb-alert-message">Mensaje</div>
+      </div>
+      <button type="button" class="mb-alert-close" id="btnCloseMBAlert">✕</button>
+    </div>
+  </div>
+
+  <div id="cobroModal" class="modal-backdrop">
+    <div class="sheet">
+      <div class="sheet-head">
+        <div>
+          <div class="sheet-title">Cobrar salida</div>
+          <div class="muted">Busca por código del ticket</div>
+        </div>
+        <button class="icon-btn" id="btnCerrarCobro">✕</button>
+      </div>
+      <div class="stack">
+        <input id="cobroCodigo" type="text" inputmode="numeric" placeholder="Código del ticket" />
+        <button id="btnBuscarCobro" class="btn btn-secondary">Buscar</button>
+        <div id="cobroData" class="empty">Ingresa el código para mostrar el detalle.</div>
+        <div class="actions">
+          <button id="btnLimpiarCobro" class="btn btn-secondary">Limpiar</button>
+          <button id="btnConfirmarCobro" class="btn btn-primary">Cobrar e imprimir</button>
+        </div>
       </div>
     </div>
-
-    <div class="license-chip">ESTADO DEL SISTEMA</div>
-
-    <h1 class="license-title">Licencia pendiente de activación</h1>
-
-    <p class="license-text">
-      Este dispositivo todavía no cuenta con una licencia activa.
-      Para continuar usando el sistema, debes solicitar tu activación.
-    </p>
-
-    <div class="license-info-box">
-      <div class="license-label">ID DEL DISPOSITIVO</div>
-      <div id="deviceIdText" class="license-device-id">CARGANDO...</div>
-    </div>
-
-    <div class="license-buttons">
-      <button type="button" class="license-btn primary" onclick="activarLicenciaWhatsApp()">
-        Activar licencia
-      </button>
-
-      <button type="button" class="license-btn secondary" onclick="copyDeviceId()">
-        Copiar ID
-      </button>
-    </div>
-
-    <div class="license-mini-note">
-      Activación única por dispositivo
-    </div>
   </div>
-</div>
 
-<!-- ALERTA MOVIL -->
-<div id="mbAlert" class="mb-alert hidden">
-  <div class="mb-alert-card">
-    <div id="mbAlertIcon" class="mb-alert-icon">!</div>
-    <div class="mb-alert-body">
-      <div id="mbAlertTitle" class="mb-alert-title">Aviso</div>
-      <div id="mbAlertMessage" class="mb-alert-message">Mensaje</div>
-    </div>
-    <button type="button" class="mb-alert-close" onclick="closeMBAlert()">✕</button>
-  </div>
-</div>
+  <script>
+    const APP_KEY = 'parqueo_el_centro_mobile_v2';
+    const USERS_KEY = APP_KEY + '_users';
+    const CIERRES_KEY = APP_KEY + '_cierres';
+    const SESSION_KEY = APP_KEY + '_session';
+    const TICKET_SEQ_KEY = APP_KEY + '_ticket_seq';
+    const CIERRE_SEQ_KEY = APP_KEY + '_cierre_seq';
+    const LICENSE_STATUS_KEY = APP_KEY + '_license_status';
+    const LICENSE_CODE_KEY = APP_KEY + '_license_code';
+    const LICENSE_DEVICE_KEY = APP_KEY + '_license_device';
+    const LICENSE_SECRET = 'MARCKBUSINESS2026';
 
-<style>
-  *{
-    -webkit-tap-highlight-color: transparent;
-  }
+    let registros = JSON.parse(localStorage.getItem(APP_KEY) || '[]');
+    let users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+    let cierres = JSON.parse(localStorage.getItem(CIERRES_KEY) || '[]');
+    let currentView = 'dashboard';
+    let cobroTargetId = null;
 
-  .hidden{
-    display:none !important;
-  }
-
-  .license-overlay{
-    position:fixed;
-    inset:0;
-    z-index:999999;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:
-      calc(env(safe-area-inset-top, 0px) + 14px)
-      14px
-      calc(env(safe-area-inset-bottom, 0px) + 14px);
-    background:
-      radial-gradient(circle at top, rgba(56,189,248,.16), transparent 30%),
-      radial-gradient(circle at bottom, rgba(34,197,94,.10), transparent 30%),
-      linear-gradient(180deg, #06101b 0%, #081523 48%, #050b12 100%);
-    overflow:auto;
-  }
-
-  .license-card{
-    width:100%;
-    max-width:420px;
-    border-radius:28px;
-    background:linear-gradient(180deg, rgba(13,27,42,.98), rgba(8,21,35,.98));
-    border:1px solid rgba(255,255,255,.08);
-    box-shadow:0 24px 70px rgba(0,0,0,.45);
-    padding:18px;
-    position:relative;
-    overflow:hidden;
-  }
-
-  .license-top{
-    position:absolute;
-    top:-80px;
-    right:-80px;
-    width:180px;
-    height:180px;
-    border-radius:50%;
-    background:radial-gradient(circle, rgba(56,189,248,.20), transparent 72%);
-    pointer-events:none;
-  }
-
-  .license-header{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin-bottom:14px;
-  }
-
-  .license-logo{
-    width:62px;
-    height:62px;
-    object-fit:contain;
-    border-radius:16px;
-    padding:6px;
-    background:rgba(255,255,255,.04);
-    border:1px solid rgba(255,255,255,.08);
-    flex:0 0 auto;
-  }
-
-  .license-brand-wrap{
-    min-width:0;
-  }
-
-  .license-brand{
-    color:#ffffff;
-    font-size:20px;
-    font-weight:900;
-    line-height:1.05;
-    word-break:break-word;
-  }
-
-  .license-subbrand{
-    color:#92a7bc;
-    font-size:12px;
-    margin-top:4px;
-    line-height:1.3;
-  }
-
-  .license-chip{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    min-height:34px;
-    padding:8px 12px;
-    border-radius:999px;
-    background:rgba(245,158,11,.12);
-    border:1px solid rgba(245,158,11,.24);
-    color:#fbbf24;
-    font-size:11px;
-    font-weight:900;
-    letter-spacing:.5px;
-    margin-bottom:14px;
-  }
-
-  .license-title{
-    margin:0 0 10px;
-    color:#fff;
-    font-size:30px;
-    line-height:1.05;
-    font-weight:900;
-  }
-
-  .license-text{
-    margin:0;
-    color:#bfd0e2;
-    font-size:14px;
-    line-height:1.55;
-  }
-
-  .license-info-box{
-    margin-top:16px;
-    padding:14px;
-    border-radius:20px;
-    background:rgba(255,255,255,.03);
-    border:1px solid rgba(255,255,255,.07);
-  }
-
-  .license-label{
-    color:#8ea2b7;
-    font-size:11px;
-    font-weight:900;
-    letter-spacing:.7px;
-    margin-bottom:8px;
-  }
-
-  .license-device-id{
-    color:#e5eef7;
-    font-size:13px;
-    line-height:1.5;
-    font-weight:800;
-    font-family:Consolas, monospace;
-    word-break:break-word;
-  }
-
-  .license-buttons{
-    display:grid;
-    grid-template-columns:1fr;
-    gap:10px;
-    margin-top:16px;
-  }
-
-  .license-btn{
-    width:100%;
-    min-height:54px;
-    border:none;
-    border-radius:18px;
-    padding:14px 16px;
-    font-size:15px;
-    font-weight:900;
-    cursor:pointer;
-    transition:.2s ease;
-  }
-
-  .license-btn:active{
-    transform:scale(.985);
-  }
-
-  .license-btn.primary{
-    background:linear-gradient(135deg, #22c55e, #16a34a);
-    color:#052e16;
-    box-shadow:0 12px 28px rgba(34,197,94,.22);
-  }
-
-  .license-btn.secondary{
-    background:#0b1725;
-    color:#edf5fb;
-    border:1px solid rgba(255,255,255,.08);
-  }
-
-  .license-mini-note{
-    text-align:center;
-    color:#7f95aa;
-    font-size:12px;
-    margin-top:14px;
-    line-height:1.4;
-  }
-
-  .mb-alert{
-    position:fixed;
-    top:calc(env(safe-area-inset-top, 0px) + 10px);
-    left:10px;
-    right:10px;
-    z-index:1000000;
-  }
-
-  .mb-alert-card{
-    display:flex;
-    align-items:flex-start;
-    gap:12px;
-    background:rgba(10,20,34,.98);
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:20px;
-    padding:14px;
-    box-shadow:0 18px 45px rgba(0,0,0,.35);
-    animation:mbAlertIn .22s ease;
-  }
-
-  @keyframes mbAlertIn{
-    from{opacity:0; transform:translateY(-10px) scale(.985);}
-    to{opacity:1; transform:translateY(0) scale(1);}
-  }
-
-  .mb-alert-icon{
-    width:40px;
-    height:40px;
-    min-width:40px;
-    border-radius:14px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:18px;
-    font-weight:900;
-    background:rgba(245,158,11,.12);
-    color:#fbbf24;
-    border:1px solid rgba(245,158,11,.22);
-  }
-
-  .mb-alert-body{
-    flex:1;
-    min-width:0;
-  }
-
-  .mb-alert-title{
-    color:#fff;
-    font-size:14px;
-    font-weight:900;
-    margin-bottom:4px;
-    line-height:1.3;
-  }
-
-  .mb-alert-message{
-    color:#c1d2e3;
-    font-size:13px;
-    line-height:1.5;
-    word-break:break-word;
-  }
-
-  .mb-alert-close{
-    border:none;
-    background:transparent;
-    color:#9bb0c5;
-    font-size:18px;
-    cursor:pointer;
-    padding:0 2px;
-    min-width:28px;
-    min-height:28px;
-  }
-
-  @media (max-width: 360px){
-    .license-card{
-      padding:16px;
-      border-radius:24px;
+    function saveAll(){
+      localStorage.setItem(APP_KEY, JSON.stringify(registros));
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+      localStorage.setItem(CIERRES_KEY, JSON.stringify(cierres));
+    }
+    function esc(s){
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function uid(prefix='id'){ return prefix + '_' + Math.random().toString(36).slice(2,9); }
+    function money(n){ return 'Q' + Number(n || 0).toFixed(2); }
+    function dt(iso){ return new Date(iso).toLocaleString(); }
+    function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
+    function getNum(v){
+      const x = String(v || '').replace(/,/g,'.').replace(/[^\d.-]/g,'');
+      const n = Number(x);
+      return Number.isFinite(n) ? n : 0;
+    }
+    function getNextTicketNo(){
+      let n = Number(localStorage.getItem(TICKET_SEQ_KEY) || '0') + 1;
+      localStorage.setItem(TICKET_SEQ_KEY, String(n));
+      return String(n).padStart(6,'0');
+    }
+    function getNextCierreNo(){
+      let n = Number(localStorage.getItem(CIERRE_SEQ_KEY) || '0') + 1;
+      localStorage.setItem(CIERRE_SEQ_KEY, String(n));
+      return String(n).padStart(6,'0');
+    }
+    function generateCode(){
+      for(let i=0;i<5000;i++){
+        const code = String(Math.floor(10000000 + Math.random()*90000000));
+        if(!registros.some(r => r.codigo === code && !r.horaSalida)) return code;
+      }
+      return String(Date.now()).slice(-8);
+    }
+    function tipoLabel(tipo){ return tipo === 'MOTO' ? 'MOTO' : 'CARRO'; }
+    function calcularPago(horaIngreso, horaSalida, tipo){
+      const entrada = new Date(horaIngreso);
+      const salida = new Date(horaSalida);
+      const minutos = Math.max(1, Math.ceil((salida - entrada)/60000));
+      if(tipo === 'MOTO'){
+        return { minutos, total: Math.ceil(minutos / 60) * 5 };
+      }
+      if(minutos <= 30) return { minutos, total: 10 };
+      if(minutos <= 60) return { minutos, total: 15 };
+      const extraMin = minutos - 60;
+      const extraBlocks = Math.ceil(extraMin / 30);
+      return { minutos, total: 15 + (extraBlocks * 5) };
     }
 
-    .license-title{
-      font-size:26px;
+
+    function generateDeviceId(){
+      const raw = [
+        navigator.userAgent || '',
+        navigator.language || '',
+        screen.width + 'x' + screen.height,
+        Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+        navigator.platform || ''
+      ].join('|');
+      let hash = 0;
+      for(let i = 0; i < raw.length; i++){
+        hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+        hash |= 0;
+      }
+      return 'MB-' + Math.abs(hash).toString(16).toUpperCase().padStart(8,'0');
     }
-
-    .license-logo{
-      width:56px;
-      height:56px;
+    function generateLicenseCode(deviceId){
+      const str = String(deviceId || '') + LICENSE_SECRET;
+      let hash = 0;
+      for(let i = 0; i < str.length; i++){
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return 'LIC-' + Math.abs(hash).toString(16).toUpperCase().padStart(8,'0');
     }
-  }
-</style>
-
-<script>
-  function generateDeviceId(){
-    const raw = [
-      navigator.userAgent || '',
-      navigator.language || '',
-      screen.width + 'x' + screen.height,
-      Intl.DateTimeFormat().resolvedOptions().timeZone || '',
-      navigator.platform || ''
-    ].join('|');
-
-    let hash = 0;
-    for(let i = 0; i < raw.length; i++){
-      hash = ((hash << 5) - hash) + raw.charCodeAt(i);
-      hash |= 0;
+    function getStoredLicensedDevice(){ return localStorage.getItem(LICENSE_DEVICE_KEY) || ''; }
+    function isLicenseActive(){
+      return localStorage.getItem(LICENSE_STATUS_KEY) === '1' && getStoredLicensedDevice() === generateDeviceId();
     }
-
-    return 'MB-' + Math.abs(hash).toString(16).toUpperCase().padStart(8,'0');
-  }
-
-  function showLicensePending(){
-    const id = generateDeviceId();
-    const box = document.getElementById('deviceIdText');
-    if(box) box.textContent = id;
-  }
-
-  function copyDeviceId(){
-    const id = document.getElementById('deviceIdText')?.textContent || '';
-
-    if(navigator.clipboard && window.isSecureContext){
-      navigator.clipboard.writeText(id)
-        .then(() => {
+    function hideLicenseError(){
+      const el = document.getElementById('licenseInlineError');
+      if(el) el.classList.add('hidden');
+    }
+    function showLicenseError(msg){
+      const el = document.getElementById('licenseInlineError');
+      if(!el) return;
+      el.textContent = msg || 'Código de licencia inválido para este dispositivo.';
+      el.classList.remove('hidden');
+    }
+    function showLicenseOverlay(){
+      hideLicenseError();
+      const id = generateDeviceId();
+      const box = document.getElementById('deviceIdText');
+      if(box) box.textContent = id;
+      document.getElementById('licenseOverlay').classList.remove('hidden');
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('app').classList.add('hidden');
+    }
+    function hideLicenseOverlay(){
+      document.getElementById('licenseOverlay').classList.add('hidden');
+    }
+    function fallbackCopyText(text){
+      try{
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showMBAlert('success', 'ID copiado', 'El identificador del dispositivo fue copiado correctamente.');
+      }catch(e){
+        showMBAlert('warning', 'No se pudo copiar', 'Copia manualmente el identificador mostrado en pantalla.');
+      }
+    }
+    function copyDeviceId(){
+      const id = document.getElementById('deviceIdText')?.textContent || generateDeviceId();
+      if(navigator.clipboard && window.isSecureContext){
+        navigator.clipboard.writeText(id).then(() => {
           showMBAlert('success', 'ID copiado', 'El identificador del dispositivo fue copiado correctamente.');
-        })
-        .catch(() => {
-          fallbackCopyText(id);
-        });
-    } else {
-      fallbackCopyText(id);
+        }).catch(() => fallbackCopyText(id));
+      } else {
+        fallbackCopyText(id);
+      }
     }
-  }
-
-  function fallbackCopyText(text){
-    try{
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showMBAlert('success', 'ID copiado', 'El identificador del dispositivo fue copiado correctamente.');
-    }catch(e){
-      showMBAlert('warning', 'No se pudo copiar', 'Copia manualmente el identificador mostrado en pantalla.');
+    function activateLicenseWhatsApp(){
+      const id = generateDeviceId();
+      const numero = '50241529411';
+      const mensaje = encodeURIComponent('Hola, deseo activar la licencia de mi sistema.%0A%0AID del dispositivo: ' + id);
+      showMBAlert('warning', 'Redirigiendo', 'Se abrirá WhatsApp para solicitar la activación de la licencia.');
+      setTimeout(() => {
+        window.location.href = 'https://wa.me/' + numero + '?text=' + mensaje;
+      }, 250);
     }
-  }
-
-  function activarLicenciaWhatsApp(){
-    const id = document.getElementById('deviceIdText')?.textContent || '';
-    const numero = '50241529411';
-    const mensaje = encodeURIComponent(
-      'Hola, deseo activar la licencia de mi sistema.%0A%0AID del dispositivo: ' + id
-    );
-
-    showMBAlert('warning', 'Redirigiendo', 'Se abrirá WhatsApp para solicitar la activación de la licencia.');
-
-    setTimeout(() => {
-      window.location.href = 'https://wa.me/' + numero + '?text=' + mensaje;
-    }, 350);
-  }
-
-  function showMBAlert(type, title, message){
-    const wrap = document.getElementById('mbAlert');
-    const icon = document.getElementById('mbAlertIcon');
-    const titleEl = document.getElementById('mbAlertTitle');
-    const msgEl = document.getElementById('mbAlertMessage');
-
-    if(!wrap || !icon || !titleEl || !msgEl) return;
-
-    titleEl.textContent = title;
-    msgEl.textContent = message;
-
-    if(type === 'success'){
-      icon.textContent = '✓';
-      icon.style.background = 'rgba(34,197,94,.12)';
-      icon.style.color = '#4ade80';
-      icon.style.border = '1px solid rgba(34,197,94,.22)';
-    } else if(type === 'error'){
-      icon.textContent = '✕';
-      icon.style.background = 'rgba(239,68,68,.12)';
-      icon.style.color = '#f87171';
-      icon.style.border = '1px solid rgba(239,68,68,.22)';
-    } else {
-      icon.textContent = '!';
-      icon.style.background = 'rgba(245,158,11,.12)';
-      icon.style.color = '#fbbf24';
-      icon.style.border = '1px solid rgba(245,158,11,.22)';
+    function submitLicense(){
+      const input = document.getElementById('licenseCodeInput');
+      const typed = String(input?.value || '').trim().toUpperCase();
+      const deviceId = generateDeviceId();
+      const expected = generateLicenseCode(deviceId);
+      hideLicenseError();
+      if(!typed){
+        showLicenseError('Ingresa el código de licencia.');
+        return;
+      }
+      if(typed !== expected){
+        showLicenseError('Código de licencia inválido para este dispositivo.');
+        showMBAlert('error', 'Licencia inválida', 'El código ingresado no corresponde a este dispositivo.');
+        return;
+      }
+      localStorage.setItem(LICENSE_STATUS_KEY, '1');
+      localStorage.setItem(LICENSE_CODE_KEY, typed);
+      localStorage.setItem(LICENSE_DEVICE_KEY, deviceId);
+      hideLicenseOverlay();
+      showMBAlert('success', 'Licencia activada', 'La licencia quedó activada correctamente en este dispositivo.');
+      bootApp();
+    }
+    function showMBAlert(type, title, message){
+      const wrap = document.getElementById('mbAlert');
+      const icon = document.getElementById('mbAlertIcon');
+      const titleEl = document.getElementById('mbAlertTitle');
+      const msgEl = document.getElementById('mbAlertMessage');
+      if(!wrap || !icon || !titleEl || !msgEl) return;
+      titleEl.textContent = title;
+      msgEl.textContent = message;
+      if(type === 'success'){
+        icon.textContent = '✓';
+        icon.style.background = 'rgba(34,197,94,.12)';
+        icon.style.color = '#4ade80';
+        icon.style.border = '1px solid rgba(34,197,94,.22)';
+      } else if(type === 'error'){
+        icon.textContent = '✕';
+        icon.style.background = 'rgba(239,68,68,.12)';
+        icon.style.color = '#f87171';
+        icon.style.border = '1px solid rgba(239,68,68,.22)';
+      } else {
+        icon.textContent = '!';
+        icon.style.background = 'rgba(245,158,11,.12)';
+        icon.style.color = '#fbbf24';
+        icon.style.border = '1px solid rgba(245,158,11,.22)';
+      }
+      wrap.classList.remove('hidden');
+      clearTimeout(window.__mbAlertTimer);
+      window.__mbAlertTimer = setTimeout(closeMBAlert, 3500);
+    }
+    function closeMBAlert(){
+      const wrap = document.getElementById('mbAlert');
+      if(wrap) wrap.classList.add('hidden');
+    }
+    function bootApp(){
+      if(!isLicenseActive()){
+        showLicenseOverlay();
+        return;
+      }
+      hideLicenseOverlay();
+      if(localStorage.getItem(SESSION_KEY) === '1'){
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        renderAll();
+      } else {
+        document.getElementById('app').classList.add('hidden');
+        document.getElementById('loginScreen').classList.remove('hidden');
+      }
     }
 
-    wrap.classList.remove('hidden');
 
-    clearTimeout(window.__mbAlertTimer);
-    window.__mbAlertTimer = setTimeout(() => {
-      closeMBAlert();
-    }, 3500);
-  }
+    function barcodeDataUrl(text){
+      const canvas = document.createElement('canvas');
+      JsBarcode(canvas, String(text), { format:'CODE128', displayValue:false, height:40, margin:4 });
+      return canvas.toDataURL('image/png');
+    }
+    function openPrint(html){
+      const w = window.open('', '_blank', 'width=380,height=640');
+      if(!w){ alert('Debes permitir ventanas emergentes para imprimir.'); return; }
+      w.document.write(html);
+      w.document.close();
+      setTimeout(() => { w.focus(); w.print(); }, 350);
+    }
+    function ticketBaseStyles(){
+      return `
+        <style>
+          @page{size:55mm auto;margin:0}
+          html,body{margin:0;padding:0;background:#fff;color:#000;font-family:monospace}
+          body{width:55mm;padding:2.5mm}
+          .center{text-align:center}
+          .b{font-weight:700}
+          .lg{font-size:13pt;font-weight:800}
+          .md{font-size:10pt;font-weight:700}
+          .sm{font-size:8.5pt}
+          .line{border-top:1px dashed #000;margin:6px 0}
+          img.logo{max-width:100%;height:auto}
+          img.bar{width:100%;height:18mm;object-fit:contain}
+      
+    /* licencia */
+    .license-overlay{
+      position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;
+      padding:calc(var(--safe-top) + 14px) 14px calc(var(--safe-bottom) + 14px);
+      background:
+        radial-gradient(circle at top, rgba(56,189,248,.16), transparent 30%),
+        radial-gradient(circle at bottom, rgba(34,197,94,.10), transparent 30%),
+        linear-gradient(180deg, #06101b 0%, #081523 48%, #050b12 100%);
+      overflow:auto
+    }
+    .license-card{
+      width:100%;max-width:420px;border-radius:28px;
+      background:linear-gradient(180deg, rgba(13,27,42,.98), rgba(8,21,35,.98));
+      border:1px solid rgba(255,255,255,.08);box-shadow:0 24px 70px rgba(0,0,0,.45);
+      padding:18px;position:relative;overflow:hidden
+    }
+    .license-top{
+      position:absolute;top:-80px;right:-80px;width:180px;height:180px;border-radius:50%;
+      background:radial-gradient(circle, rgba(56,189,248,.20), transparent 72%);pointer-events:none
+    }
+    .license-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    .license-logo{
+      width:62px;height:62px;object-fit:contain;border-radius:16px;padding:6px;background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);flex:0 0 auto
+    }
+    .license-brand-wrap{min-width:0}
+    .license-brand{color:#ffffff;font-size:20px;font-weight:900;line-height:1.05;word-break:break-word}
+    .license-subbrand{color:#92a7bc;font-size:12px;margin-top:4px;line-height:1.3}
+    .license-chip{
+      display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:8px 12px;border-radius:999px;
+      background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.24);color:#fbbf24;font-size:11px;font-weight:900;
+      letter-spacing:.5px;margin-bottom:14px
+    }
+    .license-title{margin:0 0 10px;color:#fff;font-size:30px;line-height:1.05;font-weight:900}
+    .license-text{margin:0;color:#bfd0e2;font-size:14px;line-height:1.55}
+    .license-info-box{
+      margin-top:16px;padding:14px;border-radius:20px;background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.07)
+    }
+    .license-label{color:#8ea2b7;font-size:11px;font-weight:900;letter-spacing:.7px;margin-bottom:8px}
+    .license-device-id{
+      color:#e5eef7;font-size:13px;line-height:1.5;font-weight:800;font-family:Consolas, monospace;word-break:break-word
+    }
+    .license-input{
+      width:100%;margin-top:12px;background:#0b1725;color:var(--text);border:1px solid var(--line);
+      border-radius:16px;padding:14px 14px;outline:none
+    }
+    .license-buttons{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
+    .license-btn{
+      width:100%;min-height:54px;border:none;border-radius:18px;padding:14px 16px;font-size:15px;font-weight:900;cursor:pointer;transition:.2s ease
+    }
+    .license-btn:active{transform:scale(.985)}
+    .license-btn.primary{background:linear-gradient(135deg, #22c55e, #16a34a);color:#052e16;box-shadow:0 12px 28px rgba(34,197,94,.22)}
+    .license-btn.secondary{background:#0b1725;color:#edf5fb;border:1px solid rgba(255,255,255,.08)}
+    .license-btn.ghost{background:rgba(255,255,255,.04);color:#d9e6f3;border:1px solid rgba(255,255,255,.08)}
+    .license-mini-note{text-align:center;color:#7f95aa;font-size:12px;margin-top:14px;line-height:1.4}
+    .license-inline-error{
+      margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(239,68,68,.12);color:#fecaca;border:1px solid rgba(239,68,68,.25);font-size:13px
+    }
+    .mb-alert{
+      position:fixed;top:calc(var(--safe-top) + 10px);left:10px;right:10px;z-index:1000000
+    }
+    .mb-alert-card{
+      display:flex;align-items:flex-start;gap:12px;background:rgba(10,20,34,.98);border:1px solid rgba(255,255,255,.08);
+      border-radius:20px;padding:14px;box-shadow:0 18px 45px rgba(0,0,0,.35);animation:mbAlertIn .22s ease
+    }
+    @keyframes mbAlertIn{from{opacity:0;transform:translateY(-10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .mb-alert-icon{
+      width:40px;height:40px;min-width:40px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+      font-size:18px;font-weight:900;background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.22)
+    }
+    .mb-alert-body{flex:1;min-width:0}
+    .mb-alert-title{color:#fff;font-size:14px;font-weight:900;margin-bottom:4px;line-height:1.3}
+    .mb-alert-message{color:#c1d2e3;font-size:13px;line-height:1.5;word-break:break-word}
+    .mb-alert-close{border:none;background:transparent;color:#9bb0c5;font-size:18px;cursor:pointer;padding:0 2px;min-width:28px;min-height:28px}
 
-  function closeMBAlert(){
-    const wrap = document.getElementById('mbAlert');
-    if(wrap) wrap.classList.add('hidden');
-  }
+  </style>`;
+    }
+    function printIngreso(rec){
+      const barcode = barcodeDataUrl(rec.codigo);
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Ticket ${rec.ticketNo}</title>${ticketBaseStyles()}</head><body>
+        <div class="center b lg">Parqueo El Centro</div>
+        <div class="center sm">2a. Avenida y 1a. Calle Zona 2, Salcajá</div>
+        <div class="line"></div>
+        <div class="center md">TICKET DE INGRESO</div>
+        <div class="center sm">No. ${esc(rec.ticketNo)}</div>
+        <div class="line"></div>
+        <div class="sm">Tipo: <span class="b">${esc(tipoLabel(rec.tipo))}</span></div>
+        <div class="sm">Placa: <span class="b">${esc(rec.placa)}</span></div>
+        <div class="sm">Marca: <span class="b">${esc(rec.marca || '-')}</span></div>
+        <div class="sm">Color: <span class="b">${esc(rec.color || '-')}</span></div>
+        <div class="sm">Código: <span class="b">${esc(rec.codigo)}</span></div>
+        <div class="sm">Ingreso: <span class="b">${esc(dt(rec.horaIngreso))}</span></div>
+        <div class="line"></div>
+        <div class="center"><img class="bar" src="${barcode}" /></div>
+        <div class="line"></div>
+        <div class="center sm">Conserve su ticket</div>
+      </body></html>`;
+      openPrint(html);
+    }
+    function printSalida(rec){
+      const calc = calcularPago(rec.horaIngreso, rec.horaSalida, rec.tipo);
+      const barcode = barcodeDataUrl(rec.codigo);
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Cobro ${rec.ticketNo}</title>${ticketBaseStyles()}</head><body>
+        <div class="center b lg">Parqueo El Centro</div>
+        <div class="center sm">2a. Avenida y 1a. Calle Zona 2, Salcajá</div>
+        <div class="line"></div>
+        <div class="center md">TICKET DE COBRO</div>
+        <div class="center sm">No. ${esc(rec.ticketNo)}</div>
+        <div class="line"></div>
+        <div class="sm">Tipo: <span class="b">${esc(tipoLabel(rec.tipo))}</span></div>
+        <div class="sm">Placa: <span class="b">${esc(rec.placa)}</span></div>
+        <div class="sm">Código: <span class="b">${esc(rec.codigo)}</span></div>
+        <div class="sm">Ingreso: <span class="b">${esc(dt(rec.horaIngreso))}</span></div>
+        <div class="sm">Salida: <span class="b">${esc(dt(rec.horaSalida))}</span></div>
+        <div class="sm">Tiempo: <span class="b">${calc.minutos} min</span></div>
+        <div class="line"></div>
+        <div class="center lg">TOTAL ${money(rec.total)}</div>
+        <div class="line"></div>
+        <div class="center"><img class="bar" src="${barcode}" /></div>
+        <div class="line"></div>
+        <div class="center sm">Gracias por su visita</div>
+      </body></html>`;
+      openPrint(html);
+    }
+    function printCierre(cierre){
+      const html = `<!doctype html><html><head><meta charset="utf-8"><title>Cierre ${cierre.no}</title>${ticketBaseStyles()}</head><body>
+        <div class="center b lg">Parqueo El Centro</div>
+        <div class="center sm">2a. Avenida y 1a. Calle Zona 2, Salcajá</div>
+        <div class="line"></div>
+        <div class="center md">CIERRE DE CAJA</div>
+        <div class="center sm">No. ${esc(cierre.no)}</div>
+        <div class="center sm">${esc(cierre.fecha)}</div>
+        <div class="line"></div>
+        <div class="sm">Ventas: <span class="b">${cierre.cantidad}</span></div>
+        <div class="sm">Sistema: <span class="b">${money(cierre.totalSistema)}</span></div>
+        <div class="sm">Efectivo: <span class="b">${money(cierre.pagos.efectivo)}</span></div>
+        <div class="sm">Tarjeta: <span class="b">${money(cierre.pagos.tarjeta)}</span></div>
+        <div class="sm">Transferencia: <span class="b">${money(cierre.pagos.transferencia)}</span></div>
+        <div class="sm">Otros: <span class="b">${money(cierre.pagos.otros)}</span></div>
+        <div class="sm">Recibido: <span class="b">${money(cierre.totalRecibido)}</span></div>
+        <div class="line"></div>
+        <div class="center lg">DIF ${money(cierre.diferencia)}</div>
+      </body></html>`;
+      openPrint(html);
+    }
 
-  window.addEventListener('load', () => {
-    showLicensePending();
-  });
-</script>
+    function renderStats(){
+      const activos = registros.filter(r => !r.horaSalida).length;
+      const ventas = registros.filter(r => r.horaSalida).reduce((s,r) => s + Number(r.total || 0), 0);
+      const hoy = registros.filter(r => new Date(r.horaIngreso).toDateString() === new Date().toDateString()).length;
+      document.getElementById('statActivos').textContent = activos;
+      document.getElementById('statVentas').textContent = money(ventas).replace('.00','');
+      document.getElementById('statHoy').textContent = hoy;
+    }
+
+    function recordCard(r, closed=false){
+      const minutos = r.horaSalida ? calcularPago(r.horaIngreso, r.horaSalida, r.tipo).minutos : Math.max(1, Math.ceil((Date.now() - new Date(r.horaIngreso).getTime())/60000));
+      return `
+        <div class="record">
+          <div class="record-head">
+            <div>
+              <div class="record-title">${esc(r.placa || '-')}</div>
+              <div class="muted">${esc(tipoLabel(r.tipo))} • Ticket ${esc(r.ticketNo || '-')}</div>
+            </div>
+            <div class="record-badge ${closed ? 'badge-closed' : 'badge-active'}">${closed ? 'CERRADO' : 'ACTIVO'}</div>
+          </div>
+          <div class="details">
+            <div class="detail"><div class="k">Marca</div><div class="v">${esc(r.marca || '-')}</div></div>
+            <div class="detail"><div class="k">Color</div><div class="v">${esc(r.color || '-')}</div></div>
+            <div class="detail"><div class="k">Código</div><div class="v">${esc(r.codigo)}</div></div>
+            <div class="detail"><div class="k">Ingreso</div><div class="v">${esc(dt(r.horaIngreso))}</div></div>
+            <div class="detail"><div class="k">Tiempo</div><div class="v">${minutos} min</div></div>
+            <div class="detail"><div class="k">Total</div><div class="v">${closed ? money(r.total) : 'Pendiente'}</div></div>
+          </div>
+          <div class="actions ${closed ? '' : ''}">
+            ${closed
+              ? `<button class="btn btn-secondary" onclick="reprintSalida('${r.id}')">Reimprimir</button>`
+              : `<button class="btn btn-primary" onclick="openCobroWithCode('${r.codigo}')">Cobrar</button>
+                 <button class="btn btn-secondary" onclick="reprintIngreso('${r.id}')">Reimprimir</button>`}
+          </div>
+        </div>`;
+    }
+
+    function renderActivos(){
+      const wrap = document.getElementById('activosList');
+      const data = registros.filter(r => !r.horaSalida).sort((a,b) => new Date(b.horaIngreso)-new Date(a.horaIngreso));
+      wrap.innerHTML = data.length ? data.map(r => recordCard(r,false)).join('') : '<div class="empty">No hay vehículos activos.</div>';
+    }
+    function renderHistorial(){
+      const q = document.getElementById('searchHistory').value.trim().toLowerCase();
+      const wrap = document.getElementById('historialList');
+      let data = [...registros].sort((a,b) => new Date(b.horaIngreso)-new Date(a.horaIngreso));
+      if(q){
+        data = data.filter(r => [r.placa,r.marca,r.color,r.codigo,r.ticketNo].join(' ').toLowerCase().includes(q));
+      }
+      wrap.innerHTML = data.length ? data.map(r => recordCard(r,!!r.horaSalida)).join('') : '<div class="empty">No se encontraron registros.</div>';
+    }
+    function renderVentas(){
+      const desde = document.getElementById('ventasDesde').value;
+      const hasta = document.getElementById('ventasHasta').value;
+      let data = registros.filter(r => r.horaSalida);
+      if(desde){
+        const d = new Date(desde + 'T00:00:00').getTime();
+        data = data.filter(r => new Date(r.horaSalida).getTime() >= d);
+      }
+      if(hasta){
+        const h = new Date(hasta + 'T23:59:59').getTime();
+        data = data.filter(r => new Date(r.horaSalida).getTime() <= h);
+      }
+      data.sort((a,b) => new Date(b.horaSalida)-new Date(a.horaSalida));
+      const total = data.reduce((s,r) => s + Number(r.total || 0), 0);
+      document.getElementById('ventasResumen').textContent = `Total: ${money(total)} • ${data.length} ventas`;
+      document.getElementById('ventasList').innerHTML = data.length ? data.map(r => recordCard(r,true)).join('') : '<div class="empty">No hay ventas en ese rango.</div>';
+    }
+    function renderUsers(){
+      const wrap = document.getElementById('usersList');
+      wrap.innerHTML = users.length ? users.map((u,i) => `
+        <div class="record">
+          <div class="record-head">
+            <div>
+              <div class="record-title">${esc(u.name)}</div>
+              <div class="muted">${esc(u.role || '-')}</div>
+            </div>
+            <button class="btn btn-danger" onclick="deleteUser(${i})">Eliminar</button>
+          </div>
+        </div>`).join('') : '<div class="empty">No hay usuarios registrados.</div>';
+    }
+    function renderCierres(){
+      const wrap = document.getElementById('cierresList');
+      wrap.innerHTML = cierres.length ? [...cierres].reverse().map((c, idxRev) => {
+        const realIndex = cierres.length - 1 - idxRev;
+        return `
+          <div class="record">
+            <div class="record-head">
+              <div>
+                <div class="record-title">Cierre ${esc(c.no)}</div>
+                <div class="muted">${esc(c.fecha)}</div>
+              </div>
+              <div class="record-badge badge-closed">${money(c.totalSistema)}</div>
+            </div>
+            <div class="details">
+              <div class="detail"><div class="k">Ventas</div><div class="v">${c.cantidad}</div></div>
+              <div class="detail"><div class="k">Recibido</div><div class="v">${money(c.totalRecibido)}</div></div>
+              <div class="detail"><div class="k">Diferencia</div><div class="v">${money(c.diferencia)}</div></div>
+              <div class="detail"><div class="k">Efectivo</div><div class="v">${money(c.pagos.efectivo)}</div></div>
+            </div>
+            <div class="actions single"><button class="btn btn-secondary" onclick="reprintCierre(${realIndex})">Reimprimir cierre</button></div>
+          </div>`;
+      }).join('') : '<div class="empty">No hay cierres registrados.</div>';
+    }
+
+    function updateCajaComparativa(){
+      const totalSistema = registros.filter(r => r.horaSalida).reduce((s,r) => s + Number(r.total || 0), 0);
+      const ef = getNum(document.getElementById('p_efectivo').value);
+      const ta = getNum(document.getElementById('p_tarjeta').value);
+      const tr = getNum(document.getElementById('p_transferencia').value);
+      const ot = getNum(document.getElementById('p_otros').value);
+      const recibido = ef + ta + tr + ot;
+      const dif = recibido - totalSistema;
+      document.getElementById('cajaComparativa').textContent = `Sistema: ${money(totalSistema)} • Recibido: ${money(recibido)} • Dif: ${money(dif)}`;
+    }
+
+    function setView(view){
+      currentView = view;
+      document.querySelectorAll('.view').forEach(el => el.classList.toggle('hidden', el.dataset.view !== view));
+      document.querySelectorAll('.menu-item[data-view]').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+      closeDrawer();
+      if(view === 'activos') renderActivos();
+      if(view === 'historial') renderHistorial();
+      if(view === 'ventas') renderVentas();
+      if(view === 'usuarios') renderUsers();
+      if(view === 'cierres') renderCierres();
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    function openDrawer(){
+      document.getElementById('drawer').classList.add('open');
+      document.getElementById('drawerBackdrop').classList.add('open');
+    }
+    function closeDrawer(){
+      document.getElementById('drawer').classList.remove('open');
+      document.getElementById('drawerBackdrop').classList.remove('open');
+    }
+
+    function openCobro(){ document.getElementById('cobroModal').classList.add('show'); }
+    function closeCobro(){ document.getElementById('cobroModal').classList.remove('show'); }
+    function clearCobro(){
+      cobroTargetId = null;
+      document.getElementById('cobroCodigo').value = '';
+      document.getElementById('cobroData').className = 'empty';
+      document.getElementById('cobroData').innerHTML = 'Ingresa el código para mostrar el detalle.';
+    }
+    function openCobroWithCode(code){
+      openCobro();
+      document.getElementById('cobroCodigo').value = code;
+      buscarCobro();
+    }
+    function buscarCobro(){
+      const code = document.getElementById('cobroCodigo').value.trim();
+      const rec = registros.find(r => r.codigo === code && !r.horaSalida);
+      const box = document.getElementById('cobroData');
+      if(!rec){
+        cobroTargetId = null;
+        box.className = 'empty';
+        box.innerHTML = 'No se encontró un vehículo activo con ese código.';
+        return;
+      }
+      const calc = calcularPago(rec.horaIngreso, new Date().toISOString(), rec.tipo);
+      cobroTargetId = rec.id;
+      box.className = 'record';
+      box.innerHTML = `
+        <div class="record-head">
+          <div>
+            <div class="record-title">${esc(rec.placa)}</div>
+            <div class="muted">${esc(tipoLabel(rec.tipo))} • Ticket ${esc(rec.ticketNo)}</div>
+          </div>
+          <div class="record-badge badge-active">ACTIVO</div>
+        </div>
+        <div class="details">
+          <div class="detail"><div class="k">Marca</div><div class="v">${esc(rec.marca || '-')}</div></div>
+          <div class="detail"><div class="k">Color</div><div class="v">${esc(rec.color || '-')}</div></div>
+          <div class="detail"><div class="k">Ingreso</div><div class="v">${esc(dt(rec.horaIngreso))}</div></div>
+          <div class="detail"><div class="k">Minutos</div><div class="v">${calc.minutos}</div></div>
+          <div class="detail"><div class="k">Código</div><div class="v">${esc(rec.codigo)}</div></div>
+          <div class="detail"><div class="k">Total</div><div class="v">${money(calc.total)}</div></div>
+        </div>`;
+    }
+    function confirmarCobro(){
+      if(!cobroTargetId){ alert('Primero busca un ticket válido.'); return; }
+      const idx = registros.findIndex(r => r.id === cobroTargetId);
+      if(idx < 0){ alert('Registro no encontrado.'); return; }
+      registros[idx].horaSalida = new Date().toISOString();
+      registros[idx].total = calcularPago(registros[idx].horaIngreso, registros[idx].horaSalida, registros[idx].tipo).total;
+      saveAll();
+      printSalida(registros[idx]);
+      renderAll();
+      clearCobro();
+      closeCobro();
+      setView('historial');
+    }
+
+    function addIngreso(){
+      const tipo = document.getElementById('tipo').value;
+      const placa = document.getElementById('placa').value.trim().toUpperCase();
+      const marca = document.getElementById('marca').value.trim();
+      const color = document.getElementById('color').value.trim();
+      if(!placa){ alert('Ingresa la placa.'); return; }
+      const rec = {
+        id: uid('r'),
+        tipo,
+        placa,
+        marca,
+        color,
+        codigo: generateCode(),
+        ticketNo: getNextTicketNo(),
+        horaIngreso: new Date().toISOString(),
+        horaSalida: null,
+        total: null
+      };
+      registros.push(rec);
+      saveAll();
+      printIngreso(rec);
+      document.getElementById('placa').value = '';
+      document.getElementById('marca').value = '';
+      document.getElementById('color').value = '';
+      renderAll();
+      setView('activos');
+    }
+
+    function addUser(){
+      const name = document.getElementById('u_name').value.trim();
+      const role = document.getElementById('u_role').value.trim();
+      if(!name){ alert('Ingresa el nombre del usuario.'); return; }
+      users.push({ id: uid('u'), name, role });
+      document.getElementById('u_name').value = '';
+      document.getElementById('u_role').value = '';
+      saveAll();
+      renderUsers();
+    }
+    function deleteUser(i){
+      if(!confirm('¿Eliminar este usuario?')) return;
+      users.splice(i,1);
+      saveAll();
+      renderUsers();
+    }
+    window.deleteUser = deleteUser;
+
+    function generarCierre(){
+      const totalSistema = registros.filter(r => r.horaSalida).reduce((s,r) => s + Number(r.total || 0), 0);
+      const cierre = {
+        no: getNextCierreNo(),
+        fecha: new Date().toLocaleString(),
+        cantidad: registros.filter(r => r.horaSalida).length,
+        totalSistema,
+        pagos: {
+          efectivo: getNum(document.getElementById('p_efectivo').value),
+          tarjeta: getNum(document.getElementById('p_tarjeta').value),
+          transferencia: getNum(document.getElementById('p_transferencia').value),
+          otros: getNum(document.getElementById('p_otros').value)
+        }
+      };
+      cierre.totalRecibido = cierre.pagos.efectivo + cierre.pagos.tarjeta + cierre.pagos.transferencia + cierre.pagos.otros;
+      cierre.diferencia = cierre.totalRecibido - cierre.totalSistema;
+      cierres.push(cierre);
+      saveAll();
+      printCierre(cierre);
+      ['p_efectivo','p_tarjeta','p_transferencia','p_otros'].forEach(id => document.getElementById(id).value = '');
+      updateCajaComparativa();
+      renderCierres();
+    }
+
+    function exportXlsx(){
+      const rows = registros.map(r => {
+        const minutos = r.horaSalida ? calcularPago(r.horaIngreso, r.horaSalida, r.tipo).minutos : '';
+        return {
+          Ticket: r.ticketNo,
+          Tipo: tipoLabel(r.tipo),
+          Placa: r.placa,
+          Marca: r.marca,
+          Color: r.color,
+          Codigo: r.codigo,
+          Ingreso: dt(r.horaIngreso),
+          Salida: r.horaSalida ? dt(r.horaSalida) : '',
+          Minutos: minutos,
+          Total: Number(r.total || 0)
+        };
+      });
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, 'Registros');
+      XLSX.writeFile(wb, 'Parqueo_El_Centro_Registros.xlsx');
+    }
+
+    function reprintIngreso(id){
+      const rec = registros.find(r => r.id === id);
+      if(rec) printIngreso(rec);
+    }
+    function reprintSalida(id){
+      const rec = registros.find(r => r.id === id && r.horaSalida);
+      if(rec) printSalida(rec);
+    }
+    function reprintCierre(i){ if(cierres[i]) printCierre(cierres[i]); }
+    window.reprintIngreso = reprintIngreso;
+    window.reprintSalida = reprintSalida;
+    window.reprintCierre = reprintCierre;
+    window.openCobroWithCode = openCobroWithCode;
+
+    function renderAll(){
+      renderStats();
+      renderActivos();
+      renderHistorial();
+      renderVentas();
+      renderUsers();
+      renderCierres();
+      updateCajaComparativa();
+    }
+
+    function login(){
+      if(!isLicenseActive()){
+        showLicenseOverlay();
+        return;
+      }
+      const user = document.getElementById('loginUser').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+      const ok = user === 'admin' && pass === '123';
+      document.getElementById('loginError').classList.toggle('hidden', ok);
+      if(!ok) return;
+      localStorage.setItem(SESSION_KEY, '1');
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      renderAll();
+    }
+    function logout(){
+      localStorage.removeItem(SESSION_KEY);
+      document.getElementById('app').classList.add('hidden');
+      document.getElementById('loginPass').value = '';
+      closeDrawer();
+      bootApp();
+    }
+
+    document.getElementById('btnLogin').addEventListener('click', login);
+    document.getElementById('btnValidateLicense').addEventListener('click', submitLicense);
+    document.getElementById('btnLicenseWhatsApp').addEventListener('click', activateLicenseWhatsApp);
+    document.getElementById('btnCopyDeviceId').addEventListener('click', copyDeviceId);
+    document.getElementById('btnCloseMBAlert').addEventListener('click', closeMBAlert);
+    document.getElementById('licenseCodeInput').addEventListener('keydown', e => { if(e.key === 'Enter') submitLicense(); });
+    document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
+    document.getElementById('btnMenu').addEventListener('click', openDrawer);
+    document.getElementById('drawerBackdrop').addEventListener('click', closeDrawer);
+    document.getElementById('btnLogout').addEventListener('click', logout);
+    document.querySelectorAll('.menu-item[data-view]').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+
+    document.getElementById('btnIngresar').addEventListener('click', addIngreso);
+    document.getElementById('btnOpenCobro').addEventListener('click', openCobro);
+    document.getElementById('btnQuickCobro').addEventListener('click', openCobro);
+    document.getElementById('btnQuickActivos').addEventListener('click', () => setView('activos'));
+    document.getElementById('btnQuickHistorial').addEventListener('click', () => setView('historial'));
+    document.getElementById('btnQuickCierre').addEventListener('click', () => setView('cierres'));
+
+    document.getElementById('btnCerrarCobro').addEventListener('click', closeCobro);
+    document.getElementById('btnBuscarCobro').addEventListener('click', buscarCobro);
+    document.getElementById('btnLimpiarCobro').addEventListener('click', clearCobro);
+    document.getElementById('btnConfirmarCobro').addEventListener('click', confirmarCobro);
+    document.getElementById('cobroCodigo').addEventListener('keydown', e => { if(e.key === 'Enter') buscarCobro(); });
+
+    document.getElementById('searchHistory').addEventListener('input', renderHistorial);
+    document.getElementById('ventasDesde').value = todayISO();
+    document.getElementById('ventasHasta').value = todayISO();
+    document.getElementById('btnFiltrarVentas').addEventListener('click', renderVentas);
+    document.getElementById('btnAddUser').addEventListener('click', addUser);
+    document.getElementById('btnGenerarCierre').addEventListener('click', generarCierre);
+    ['p_efectivo','p_tarjeta','p_transferencia','p_otros'].forEach(id => document.getElementById(id).addEventListener('input', updateCajaComparativa));
+    document.getElementById('btnExportXlsx').addEventListener('click', exportXlsx);
+
+    bootApp();
+  </script>
+</body>
+</html>
